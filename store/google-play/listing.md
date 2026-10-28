@@ -1,21 +1,48 @@
-# Listing (en-US) – DRAFT
+# Listing (en-US) - DRAFT, owner review required
 
-**Title (<=30):** Block Puzzle
+**Title (<=30):** Blockfall: Gem Drop Puzzle
 
-**Short description (<=80):** Drag, drop and clear rows and columns in a relaxing block puzzle.
+**Short description (<=80):** Drop glowing gem pieces, clear rows, grab prisms. Hold, Next and power-ups.
 
 **Full description (<=4000):**
 
-Block Puzzle is a calm, easy-to-learn puzzle game. Drag the three pieces onto the 8x8 grid and
-fill whole rows or columns to clear them. Plan ahead, build combos and beat your best score.
+Blockfall is a polished falling-blocks puzzle for quick breaks and long sessions alike. Glossy gem pieces drop into a 10-wide well. Fill a row and it clears. Keep the stack low as the speed climbs through 15 levels.
 
-- Simple drag-and-drop play, no time pressure
-- Daily rewards, streaks and three fresh daily challenges
-- Achievements to unlock
-- Works offline
+NEW: PRISM GEMS
+Every few pieces carry a glowing prism gem. Clear a row that contains one and that row scores double and pays out bonus coins. Plan your drops to collect them.
 
-Contains ads. You can remove them with a one-time purchase. Optional rewarded ads let you
-continue after a game over.
+PLAY YOUR WAY
+- Tap to rotate, drag to move, swipe down to drop. Prefer buttons? Switch to on-screen controls in Settings.
+- Hold a piece for later and peek at the next three pieces.
+- Ghost outline shows where your piece will land.
+- Chain combos, land back-to-back four-row clears and go for a perfect clear.
+
+THREE POWER-UPS
+- Sweep removes the bottom three rows.
+- Slow halves the fall speed for a while.
+- Bomb blasts a 3x3 area.
+Earn them with coins or by watching an optional ad.
+
+COME BACK EVERY DAY
+- Daily rewards on a 7-day cycle
+- Streaks, with a streak freeze that covers a missed day
+- Three fresh daily challenges
+- Ten achievements to unlock
+- Optional daily reminder (you choose in Settings)
+
+GOOD TO KNOW
+- Works offline, no account needed
+- One endless mode: play until the well fills up
+- Free to play with ads. A one-time purchase removes banner and interstitial ads. Optional rewarded ads let you refill a power-up or continue once after a game over.
+- Optional coin pack available as an in-app purchase.
+
+Drop, clear, repeat. Download Blockfall and beat your best score.
+
+**Keywords / tags (not a Play field; use in description wording only):** falling blocks, gem puzzle, row clear, offline puzzle
 
 **Category:** Games > Puzzle
-**Content rating notes:** No violence, no user-generated content, no multiplayer. Contains ads.
+**Contains ads:** Yes
+**In-app purchases:** Yes (Remove Ads, Coin Pack)
+**Target audience:** 13+ (teen and general audience). Not designed for children; do not opt into Families.
+**Content rating (IARC questionnaire, expected result: Everyone / PEGI 3):** no violence, no blood, no sexual content, no profanity, no gambling or simulated gambling (coins have no cash value and cannot be bought into chance rewards), no controlled substances, no user-generated content, no user interaction or chat, no location sharing. Contains ads and optional in-app purchases.
+**Contact / privacy policy URL:** set in Play Console (policy must be hosted at a public URL).

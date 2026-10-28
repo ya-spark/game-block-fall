@@ -1,6 +1,6 @@
 # Privacy Policy for Blockfall - DRAFT (owner/lawyer review before publishing)
 
-_Last updated: 2026-10-28. Developer: PLACEHOLDER_DEVELOPER_NAME. Contact: PLACEHOLDER@example.com_
+_Last updated: 2026-10-28. Developer: Yaseen. Contact: ggadmuser@gmail.com_
 
 Blockfall (package `com.activemindcraft.blockfall`) is a single-player game. It has no account system and no server of its own.
 
@@ -31,4 +31,4 @@ Blockfall is not designed for or directed to children under 13, and we do not kn
 Internet (ads and purchases), notifications (optional reminder), run at startup (restore the reminder after reboot), advertising ID (AdMob).
 
 ## Changes and contact
-We may update this policy; the date above shows the latest version. Questions: PLACEHOLDER@example.com.
+We may update this policy; the date above shows the latest version. Questions: ggadmuser@gmail.com.

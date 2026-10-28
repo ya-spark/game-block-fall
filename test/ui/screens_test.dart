@@ -89,18 +89,19 @@ void main() {
     expect(find.byKey(TestIds.settingsPlayGames), findsOneWidget);
   });
 
-  testWidgets('game: placeholder screen opens from Play and goes back', (
-    tester,
-  ) async {
+  testWidgets('game: screen opens from Play and goes back', (tester) async {
     final s = await buildFakeServices();
     await pumpApp(tester, s);
     await tester.tap(find.byKey(TestIds.homePlay));
-    await tester.pumpAndSettle();
+    // The Flame loop never settles: pump fixed durations.
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.byKey(TestIds.gameWidget), findsOneWidget);
     expect(find.byKey(TestIds.gameScore), findsOneWidget);
     expect(find.byKey(TestIds.gameBanner), findsNothing);
     await tester.tap(find.byKey(TestIds.gameBack));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 600));
     expect(find.byKey(TestIds.homePlay), findsOneWidget);
   });
 }

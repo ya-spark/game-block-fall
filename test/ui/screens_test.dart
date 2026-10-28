@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:blockfall/app.dart';
 import 'package:blockfall/core/services.dart';
+import 'package:blockfall/ui/game_screen.dart';
 import 'package:blockfall/ui/test_ids.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -26,9 +27,30 @@ void main() {
       TestIds.homeSettings,
       TestIds.homeCoins,
       TestIds.homeBestScore,
+      TestIds.homeBanner,
     ]) {
       expect(find.byKey(k), findsOneWidget, reason: '$k');
     }
+  });
+
+  testWidgets('the banner lives on Home only, not on the game screen', (
+    tester,
+  ) async {
+    final s = await buildFakeServices();
+    await pumpApp(tester, s);
+    expect(find.byKey(TestIds.homeBanner), findsOneWidget);
+    await tester.tap(find.byKey(TestIds.homePlay));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(TestIds.gameWidget), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(GameScreen),
+        matching: find.byKey(TestIds.homeBanner),
+      ),
+      findsNothing,
+    );
+    expect(find.byKey(TestIds.gameBanner), findsNothing);
   });
 
   testWidgets('daily reward screen: claim adds coins and disables the button', (

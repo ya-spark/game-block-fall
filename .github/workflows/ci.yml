@@ -41,6 +41,8 @@ jobs:
         run: bash scripts/check_asset_licenses.sh
       - name: No secrets committed
         run: bash scripts/no_secrets_check.sh
+      - name: Naming rule (no trademarked names)
+        run: bash scripts/naming_check.sh
 
   build-debug:
     name: debug APK builds

@@ -7,13 +7,13 @@ import 'package:flutter/services.dart';
 
 import '../core/ads/ad_service.dart';
 import '../core/profile/profile_store.dart';
+import '../core/save/save_data.dart';
 import '../core/services.dart';
 import '../game/flame/blockfall_flame_game.dart';
 import '../game/flame/blockfall_layout.dart';
 import '../game/rules/blockfall_game.dart';
 import '../game/rules/events.dart';
 import '../game/rules/powerups.dart';
-import 'blockfall_prefs.dart';
 import 'hud_widgets.dart';
 import 'test_ids.dart';
 
@@ -35,7 +35,6 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   BlockfallFlameGame? _flame;
-  BlockfallPrefs? _prefs;
   Services? _s;
   bool _started = false;
   bool _recorded = false;
@@ -69,18 +68,19 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  Future<void> _init() async {
-    final prefs = await BlockfallPrefs.load();
-    if (!mounted) return;
-    _prefs = prefs;
+  void _init() {
     final rules = widget.game ?? _newRules();
-    final flame = BlockfallFlameGame(rules: rules, showGhost: prefs.ghost)
-      ..onEvent = _onEvent;
-    setState(() => _flame = flame);
+    _flame = BlockfallFlameGame(
+      rules: rules,
+      showGhost: _s!.profile.data.ghostOn,
+    )..onEvent = _onEvent;
   }
 
   BlockfallGame _newRules() {
-    final stock = _prefs!.stock;
+    final saved = _s!.profile.data;
+    final stock = {
+      for (final t in PowerUpType.values) t: saved.powerUpCount(t.name),
+    };
     if (kBlockfallSeed >= 0) {
       return BlockfallGame.seeded(kBlockfallSeed + _gameIndex, stock: stock);
     }
@@ -138,9 +138,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   void _persistStock() {
     final f = _flame;
-    final p = _prefs;
-    if (f == null || p == null) return;
-    p.saveStock({for (final t in PowerUpType.values) t: f.rules.stock(t)});
+    final s = _s;
+    if (f == null || s == null) return;
+    s.profile.setPowerUps({
+      for (final t in PowerUpType.values) t.name: f.rules.stock(t),
+    });
   }
 
   Future<void> _finishGame() async {
@@ -157,6 +159,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         linesCleared: g.lines,
         piecesPlaced: g.piecesPlaced,
         maxCombo: g.maxCombo,
+        quads: g.quads,
+        prismRows: g.prismRowsCleared,
+        holdsUsed: g.holdsUsed,
+        perfectClears: g.perfectClears,
+        level: g.level,
       ),
     );
     await s.leaderboard.submitScore(
@@ -343,8 +350,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           _snack('Not enough coins (${t.price} needed)');
         }
       case 'ad':
-        // TODO(chunk 3): AdPlacement has no power-up refill value yet (lib/core).
-        final earned = await s.ads.showRewarded(AdPlacement.gameOver);
+        final earned = await s.ads.showRewarded(AdPlacement.powerUp);
         if (earned && !f.rules.refillWithAd(t)) {
           _snack('No more ad refills this game');
         } else if (!earned) {
@@ -416,7 +422,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   Widget _buildPlay(BuildContext context, BlockfallFlameGame flame) {
     final s = _s!;
     final rules = flame.rules;
-    final buttons = _prefs?.controls == ControlScheme.buttons;
+    final buttons = s.profile.controlScheme == ControlScheme.buttons;
     return Column(
       children: [
         Padding(
@@ -468,7 +474,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   Widget _buildMiddle(BlockfallLayout l, BlockfallFlameGame flame) {
     final rules = flame.rules;
-    final touch = _prefs?.controls != ControlScheme.buttons;
+    final touch = _s!.profile.controlScheme != ControlScheme.buttons;
     Widget well = SizedBox(
       width: l.wellWidth,
       height: l.wellHeight,

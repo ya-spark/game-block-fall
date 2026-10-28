@@ -18,16 +18,38 @@ class GameSummary {
     required this.linesCleared,
     required this.piecesPlaced,
     required this.maxCombo,
+    this.quads = 0,
+    this.prismRows = 0,
+    this.holdsUsed = 0,
+    this.perfectClears = 0,
+    this.level = 1,
   });
   final int score;
   final int linesCleared;
   final int piecesPlaced;
   final int maxCombo;
+
+  /// Quads (4 rows at once) cleared this game.
+  final int quads;
+
+  /// Rows holding a prism that were cleared this game.
+  final int prismRows;
+  final int holdsUsed;
+  final int perfectClears;
+
+  /// Level reached when the game ended.
+  final int level;
 }
 
 /// Holds the player's [SaveData], applies the retention engines and persists every change.
 /// UI listens to it; game rules never touch it.
 class ProfileStore extends ChangeNotifier {
+  /// `--dart-define=BLOCKFALL_CONTROLS=buttons` makes Buttons the default (bot / tests).
+  static const ControlScheme defaultControls =
+      String.fromEnvironment('BLOCKFALL_CONTROLS') == 'buttons'
+      ? ControlScheme.buttons
+      : ControlScheme.touch;
+
   ProfileStore({required this._saves, required this.retention, Clock? clock})
     : _clock = clock ?? DateTime.now;
 
@@ -93,16 +115,30 @@ class ProfileStore extends ChangeNotifier {
   int get dailyRewardDayToClaim =>
       DailyRewardEngine.dayToClaim(_data.dailyReward, today);
 
-  /// Claims today's reward; returns coins granted or null if unavailable.
-  Future<int?> claimDailyReward() async {
+  /// Claims today's reward (coins and/or power-ups); null if unavailable.
+  Future<DailyRewardClaim?> claimDailyReward() async {
     if (!retention.dailyReward) return null;
     final c = DailyRewardEngine.claim(_data.dailyReward, today);
     if (c == null) return null;
     await _commit(
-      _data.copyWith(dailyReward: c.state, coins: _data.coins + c.coins),
+      _data.copyWith(
+        dailyReward: c.state,
+        coins: _data.coins + c.coins,
+        powerUps: _withPowerUps(_data.powerUps, c.powerUps),
+      ),
     );
-    return c.coins;
+    return c;
   }
+
+  static Map<String, int> _withPowerUps(
+    Map<String, int> stock,
+    Map<String, int> add,
+  ) => {
+    for (final id in kPowerUpIds)
+      id: (stock[id] ?? 0) + (add[id] ?? 0) < 0
+          ? 0
+          : (stock[id] ?? 0) + (add[id] ?? 0),
+  };
 
   // ---- streak -------------------------------------------------------------
 
@@ -133,6 +169,11 @@ class ProfileStore extends ChangeNotifier {
       piecesPlaced: d.stats.piecesPlaced + g.piecesPlaced,
       bestScore: g.score > d.stats.bestScore ? g.score : null,
       maxCombo: g.maxCombo > d.stats.maxCombo ? g.maxCombo : null,
+      quads: d.stats.quads + g.quads,
+      prismRows: d.stats.prismRows + g.prismRows,
+      holdsUsed: d.stats.holdsUsed + g.holdsUsed,
+      perfectClears: d.stats.perfectClears + g.perfectClears,
+      maxLevel: g.level > d.stats.maxLevel ? g.level : null,
     );
     d = d.copyWith(
       stats: stats,
@@ -147,12 +188,15 @@ class ProfileStore extends ChangeNotifier {
         ChallengeKind.clearLines,
         g.linesCleared,
       );
+      c = DailyChallengeEngine.record(c, ChallengeKind.clearQuads, g.quads);
+      c = DailyChallengeEngine.record(c, ChallengeKind.reachLevel, g.level);
       c = DailyChallengeEngine.record(
         c,
-        ChallengeKind.placePieces,
-        g.piecesPlaced,
+        ChallengeKind.clearPrismRows,
+        g.prismRows,
       );
       c = DailyChallengeEngine.record(c, ChallengeKind.makeCombo, g.maxCombo);
+      c = DailyChallengeEngine.record(c, ChallengeKind.useHold, g.holdsUsed);
       d = d.copyWith(challenges: c);
     }
     final r = _unlockAchievements(d);
@@ -195,6 +239,42 @@ class ProfileStore extends ChangeNotifier {
   Future<void> setSound(bool v) => _commit(_data.copyWith(soundOn: v));
   Future<void> setVibration(bool v) => _commit(_data.copyWith(vibrationOn: v));
   Future<void> setReminders(bool v) => _commit(_data.copyWith(remindersOn: v));
+
+  // ---- Blockfall settings and power-up stock ------------------------------
+
+  /// The scheme in use: the saved choice, else [defaultControls] (a build-time default).
+  ControlScheme get controlScheme => _data.controls ?? defaultControls;
+  Future<void> setControls(ControlScheme v) =>
+      _commit(_data.copyWith(controls: v));
+  Future<void> setGhost(bool v) => _commit(_data.copyWith(ghostOn: v));
+
+  int powerUpCount(String id) => _data.powerUpCount(id);
+
+  /// Replaces the stock (the game writes its remaining stock back during play).
+  Future<void> setPowerUps(Map<String, int> stock) async {
+    final next = _withPowerUps({for (final id in kPowerUpIds) id: 0}, stock);
+    if (mapEquals(next, _data.powerUps)) return;
+    await _commit(_data.copyWith(powerUps: next));
+  }
+
+  Future<void> addPowerUp(String id, [int n = 1]) =>
+      _commit(_data.copyWith(powerUps: _withPowerUps(_data.powerUps, {id: n})));
+
+  /// One-off import of the settings the game kept in SharedPreferences before they moved
+  /// into [SaveData]. Values already chosen in the save win over the imported ones.
+  Future<void> importLegacySettings({
+    Map<String, int>? powerUps,
+    ControlScheme? controls,
+    bool? ghost,
+  }) => _commit(
+    _data.copyWith(
+      powerUps: powerUps == null
+          ? null
+          : _withPowerUps({for (final id in kPowerUpIds) id: 0}, powerUps),
+      controls: _data.controls ?? controls,
+      ghostOn: ghost,
+    ),
+  );
 
   // ---- purchases ----------------------------------------------------------
 

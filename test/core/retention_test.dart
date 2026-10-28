@@ -11,7 +11,7 @@ void main() {
       const s = DailyRewardState();
       final c = DailyRewardEngine.claim(s, 100)!;
       expect(c.day, 0);
-      expect(c.coins, DailyRewardEngine.coinsByDay[0]);
+      expect(c.coins, 30);
     });
 
     test('cannot claim twice on the same day', () {
@@ -36,6 +36,16 @@ void main() {
       s = DailyRewardEngine.claim(s, 101)!.state;
       final c = DailyRewardEngine.claim(s, 103)!; // skipped 102
       expect(c.day, 0);
+    });
+
+    test('the cycle pays the spec rewards', () {
+      final r = DailyRewardEngine.rewards;
+      expect(r.map((e) => e.coins), [30, 40, 50, 0, 70, 0, 150]);
+      expect(r[3].powerUps, {'slow': 1});
+      expect(r[5].powerUps, {'bomb': 1});
+      expect(r[6].powerUps, {'sweep': 1});
+      expect(r[6].label, '150 + Sweep');
+      expect(r[3].label, 'Slow');
     });
 
     test('json round trip', () {
@@ -182,6 +192,51 @@ void main() {
       expect(s.challenges[1].progress, 7);
     });
 
+    test('eight templates with rewards of 25 to 60 coins', () {
+      expect(DailyChallengeEngine.templates, hasLength(8));
+      expect(
+        DailyChallengeEngine.templates.map((t) => t.kind).toSet(),
+        ChallengeKind.values.toSet(),
+      );
+      for (final t in DailyChallengeEngine.templates) {
+        expect(t.targets.length, t.rewards.length);
+        expect(t.targets.length, inInclusiveRange(2, 3));
+        expect(t.rewards, everyElement(inInclusiveRange(25, 60)));
+      }
+    });
+
+    test('every day for a year yields valid targets and rewards', () {
+      for (var day = 0; day < 365; day++) {
+        final s = DailyChallengeEngine.ensureToday(
+          const DailyChallengesState(),
+          day,
+        );
+        expect(s.challenges, hasLength(3));
+        for (final c in s.challenges) {
+          expect(c.target, greaterThan(0));
+          expect(c.reward, inInclusiveRange(25, 60));
+          expect(c.description, isNot(contains('{n}')));
+        }
+      }
+    });
+
+    test('challenges of a retired kind in an old save are dropped', () {
+      final s = DailyChallengesState.fromJson({
+        'day': 5,
+        'challenges': [
+          {
+            'id': 'x',
+            'kind': 'placePieces',
+            'description': 'Place 30 pieces',
+            'target': 30,
+            'reward': 20,
+          },
+        ],
+      });
+      expect(s.challenges, isEmpty);
+      expect(DailyChallengeEngine.ensureToday(s, 5).challenges, hasLength(3));
+    });
+
     test('json round trip', () {
       final s = DailyChallengeEngine.ensureToday(
         const DailyChallengesState(),
@@ -195,10 +250,84 @@ void main() {
   });
 
   group('AchievementEngine', () {
-    test('unlocks when thresholds are reached, once', () {
-      const stats = LifetimeStats(gamesPlayed: 1, bestScore: 1200);
+    List<String> ids(LifetimeStats s) =>
+        AchievementEngine.newlyUnlocked(s, {}).map((a) => a.id).toList();
+
+    test('there are exactly the ten spec achievements', () {
+      expect(AchievementEngine.all.map((a) => a.id), [
+        'ach_first_row',
+        'ach_century',
+        'ach_quad_squad',
+        'ach_prism_collector',
+        'ach_combo_master',
+        'ach_speed_demon',
+        'ach_perfect',
+        'ach_hold_tactician',
+        'ach_marathoner',
+        'ach_daily_devotee',
+      ]);
+    });
+
+    test('nothing unlocked for zero stats', () {
+      expect(ids(const LifetimeStats()), isEmpty);
+    });
+
+    test('each achievement unlocks on its condition, not before', () {
+      final cases = <String, (LifetimeStats, LifetimeStats)>{
+        'ach_first_row': (
+          const LifetimeStats(totalLines: 0),
+          const LifetimeStats(totalLines: 1),
+        ),
+        'ach_century': (
+          const LifetimeStats(totalLines: 99),
+          const LifetimeStats(totalLines: 100),
+        ),
+        'ach_quad_squad': (
+          const LifetimeStats(quads: 3),
+          const LifetimeStats(quads: 4),
+        ),
+        'ach_prism_collector': (
+          const LifetimeStats(prismRows: 49),
+          const LifetimeStats(prismRows: 50),
+        ),
+        'ach_combo_master': (
+          const LifetimeStats(maxCombo: 4),
+          const LifetimeStats(maxCombo: 5),
+        ),
+        'ach_speed_demon': (
+          const LifetimeStats(maxLevel: 9),
+          const LifetimeStats(maxLevel: 10),
+        ),
+        'ach_perfect': (
+          const LifetimeStats(),
+          const LifetimeStats(perfectClears: 1),
+        ),
+        'ach_hold_tactician': (
+          const LifetimeStats(holdsUsed: 99),
+          const LifetimeStats(holdsUsed: 100),
+        ),
+        'ach_marathoner': (
+          const LifetimeStats(bestScore: 19999),
+          const LifetimeStats(bestScore: 20000),
+        ),
+        'ach_daily_devotee': (
+          const LifetimeStats(bestStreak: 6),
+          const LifetimeStats(bestStreak: 7),
+        ),
+      };
+      expect(
+        cases.keys.toSet(),
+        AchievementEngine.all.map((a) => a.id).toSet(),
+      );
+      for (final e in cases.entries) {
+        expect(ids(e.value.$1), isNot(contains(e.key)), reason: e.key);
+        expect(ids(e.value.$2), contains(e.key), reason: e.key);
+      }
+    });
+
+    test('unlocks once', () {
+      const stats = LifetimeStats(totalLines: 5);
       final first = AchievementEngine.newlyUnlocked(stats, {});
-      expect(first.map((a) => a.id), containsAll(['first_game', 'score_1000']));
       final again = AchievementEngine.newlyUnlocked(
         stats,
         first.map((a) => a.id).toSet(),
@@ -206,16 +335,24 @@ void main() {
       expect(again, isEmpty);
     });
 
-    test('nothing unlocked for zero stats', () {
-      expect(
-        AchievementEngine.newlyUnlocked(const LifetimeStats(), {}),
-        isEmpty,
-      );
-    });
-
     test('achievement ids are unique', () {
       final ids = AchievementEngine.all.map((a) => a.id);
       expect(ids.toSet().length, ids.length);
+    });
+
+    test('stats json round trip keeps the new counters', () {
+      const s = LifetimeStats(
+        quads: 2,
+        prismRows: 3,
+        holdsUsed: 4,
+        perfectClears: 5,
+        maxLevel: 6,
+      );
+      final r = LifetimeStats.fromJson(s.toJson());
+      expect(
+        [r.quads, r.prismRows, r.holdsUsed, r.perfectClears, r.maxLevel],
+        [2, 3, 4, 5, 6],
+      );
     });
   });
 

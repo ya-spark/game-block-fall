@@ -53,6 +53,40 @@ void main() {
       expect(d.processedPurchases, isEmpty);
     });
 
+    test('v2 saves migrate to v3 with fresh stock, ghost on, no controls', () {
+      final migrated = SaveMigrator.migrate({
+        'version': 2,
+        'coins': 40,
+        'unlockedAchievements': ['first_game', 'ach_century'],
+      });
+      expect(migrated['version'], 3);
+      final d = SaveData.fromJson(migrated);
+      expect(d.coins, 40);
+      expect(d.powerUps, {'sweep': 1, 'slow': 1, 'bomb': 1});
+      expect(d.controls, isNull);
+      expect(d.ghostOn, isTrue);
+      expect(d.unlockedAchievements, {'ach_century'});
+    });
+
+    test('v3 fields round trip; negative or missing stock is repaired', () {
+      const d = SaveData(
+        powerUps: {'sweep': 0, 'slow': 3, 'bomb': 2},
+        controls: ControlScheme.buttons,
+        ghostOn: false,
+      );
+      final back = SaveData.fromJson(SaveMigrator.migrate(d.toJson()));
+      expect(back.powerUps, {'sweep': 0, 'slow': 3, 'bomb': 2});
+      expect(back.controls, ControlScheme.buttons);
+      expect(back.ghostOn, isFalse);
+      final odd = SaveData.fromJson({
+        'version': 3,
+        'powerUps': {'sweep': -2, 'slow': 'x'},
+        'controls': 'gamepad',
+      });
+      expect(odd.powerUps, {'sweep': 0, 'slow': 1, 'bomb': 1});
+      expect(odd.controls, isNull);
+    });
+
     test('a save from a newer app version is rejected', () {
       expect(
         () => SaveMigrator.migrate({'version': SaveData.currentVersion + 1}),

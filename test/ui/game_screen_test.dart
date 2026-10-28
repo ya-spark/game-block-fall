@@ -1,13 +1,13 @@
 import 'dart:math';
 
 import 'package:blockfall/core/ads/ad_service.dart';
+import 'package:blockfall/core/save/save_data.dart';
 import 'package:blockfall/core/services.dart';
 import 'package:blockfall/game/rules/bag.dart';
 import 'package:blockfall/game/rules/blockfall_game.dart';
 import 'package:blockfall/game/rules/piece_type.dart';
 import 'package:blockfall/game/rules/powerups.dart';
 import 'package:blockfall/game/rules/well.dart';
-import 'package:blockfall/ui/blockfall_prefs.dart';
 import 'package:blockfall/ui/game_screen.dart';
 import 'package:blockfall/ui/settings_screen.dart';
 import 'package:blockfall/ui/test_ids.dart';
@@ -49,7 +49,7 @@ Future<Services> openGame(
   addTearDown(tester.view.reset);
   final s = services ?? await buildFakeServices(ads: ads);
   if (buttons) {
-    await (await BlockfallPrefs.load()).setControls(ControlScheme.buttons);
+    await s.profile.setControls(ControlScheme.buttons);
   }
   await tester.pumpWidget(
     ServicesScope(
@@ -301,11 +301,9 @@ void main() {
 
     testWidgets('stock is saved for the next game', (tester) async {
       final g = mk();
-      await openGame(tester, g);
+      final s = await openGame(tester, g);
       await tapKey(tester, TestIds.gamePowerUpSlow);
-      final prefs = await BlockfallPrefs.load();
-      expect(prefs.stock[PowerUpType.slow], 0);
-      expect(prefs.stock[PowerUpType.sweep], 1);
+      expect(s.profile.data.powerUps, {'sweep': 1, 'slow': 0, 'bomb': 1});
     });
 
     testWidgets('0 stock opens the sheet; coins buy +1 and deduct price', (
@@ -482,9 +480,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(TestIds.settingsGhost));
     await tester.pumpAndSettle();
-    final p = await BlockfallPrefs.load();
-    expect(p.controls, ControlScheme.buttons);
-    expect(p.ghost, isFalse);
+    expect(s.profile.data.controls, ControlScheme.buttons);
+    expect(s.profile.data.ghostOn, isFalse);
   });
 
   testWidgets('bot plays random drops with the buttons until game over', (

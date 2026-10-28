@@ -53,11 +53,13 @@ class DailyRewardScreen extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text('Day ${i + 1}'),
-                              const Icon(
-                                Icons.monetization_on,
+                              Icon(
+                                DailyRewardEngine.rewards[i].coins > 0
+                                    ? Icons.monetization_on
+                                    : Icons.bolt,
                                 color: Colors.amber,
                               ),
-                              Text('${DailyRewardEngine.coinsByDay[i]}'),
+                              Text(DailyRewardEngine.rewards[i].label),
                               if (i < claimedThrough)
                                 const Icon(Icons.check, size: 16),
                             ],
@@ -70,10 +72,14 @@ class DailyRewardScreen extends StatelessWidget {
                   key: TestIds.dailyClaim,
                   onPressed: available
                       ? () async {
-                          final coins = await profile.claimDailyReward();
-                          if (coins != null && context.mounted) {
+                          final c = await profile.claimDailyReward();
+                          if (c != null && context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('+$coins coins')),
+                              SnackBar(
+                                content: Text(
+                                  'Reward: ${DailyRewardEngine.rewards[c.day].label}',
+                                ),
+                              ),
                             );
                           }
                         }

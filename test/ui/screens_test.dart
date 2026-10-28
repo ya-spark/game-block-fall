@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:blockfall/app.dart';
-import 'package:blockfall/core/retention/daily_reward.dart';
 import 'package:blockfall/core/services.dart';
 import 'package:blockfall/ui/test_ids.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -42,7 +41,7 @@ void main() {
     expect(find.byKey(TestIds.dailyDay(6)), findsOneWidget);
     await tester.tap(find.byKey(TestIds.dailyClaim));
     await tester.pumpAndSettle();
-    expect(s.profile.data.coins, DailyRewardEngine.coinsByDay[0]);
+    expect(s.profile.data.coins, 30);
     final btn = tester.widget<FilledButton>(find.byKey(TestIds.dailyClaim));
     expect(btn.onPressed, isNull);
   });
@@ -57,7 +56,10 @@ void main() {
       for (var i = 0; i < 3; i++) {
         expect(find.byKey(TestIds.challengeTile(i)), findsOneWidget);
       }
-      expect(find.byKey(TestIds.achievementTile('first_game')), findsOneWidget);
+      expect(
+        find.byKey(TestIds.achievementTile('ach_first_row')),
+        findsOneWidget,
+      );
     },
   );
 

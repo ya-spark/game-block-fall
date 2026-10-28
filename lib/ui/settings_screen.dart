@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../core/profile/profile_store.dart';
 import '../core/save/save_data.dart';
 import '../core/services.dart';
+import 'blockfall_prefs.dart';
 import 'test_ids.dart';
 
 class SettingsScreen extends StatelessWidget {

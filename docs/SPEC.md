@@ -2,6 +2,8 @@
 
 Status: APPROVED by the user on 2026-10-28. This is the contract for all later stages. This file is the contract for the game (copied from app-factory registry/specs/blockfall.md).
 
+Implementation status (updated by the coder stage, chunk 3): sections 1 to 7, 9 and 12 are implemented and covered by tests; nothing is open in the code except the items below that need a real device. Accepted deviations: (a) Settings uses a single "On-screen buttons" switch for the Touch/Buttons scheme instead of a segmented control (`settings.controls` is that switch); (b) **no sound or audio in v1**: section 8 sounds are not built (the Sound switch exists in Settings but is inert), haptics are implemented; (c) the achievement "Prism Collector" counts cleared rows that hold a prism (a row with two prisms counts once); (d) the daily-reward cycle replaced the template's coin-only cycle, and the old block-puzzle challenges and achievements were removed (old unlocked ids are dropped in the v3 save migration). Still to verify on a device or in the manual emulator job: real-AdMob test-ad behaviour, haptics, Flame frame rate, backgrounding, `integration_test/blockfall_bot_test.dart`. Not part of this stage: store listing text and privacy policy (listing stage), icon and screenshots (asset stage).
+
 - id: `blockfall`, display name: **Blockfall**, package: `com.activemindcraft.blockfall`, repo: `ya-spark/game-block-fall`
 - Base template: block puzzle template (`template/flutter-game-template`). No falling-blocks template exists yet.
 - Naming rule: the strings "Tetris" and "Block Blast", their logos, art, sounds, and piece letter-names-as-branding must not appear in code, assets, listing or keywords. Pieces are called by the original names in section 4.

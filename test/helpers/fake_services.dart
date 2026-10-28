@@ -16,7 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Services wired with fakes (no plugins, no network). Reads the real config files.
 Future<Services> buildFakeServices({
-  FakeAdService? ads,
+  AdService? ads,
   DateTime Function()? clock,
 }) async {
   SharedPreferences.setMockInitialValues({});

@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../core/profile/profile_store.dart';
+import '../core/save/save_data.dart';
 import '../core/services.dart';
-import 'blockfall_prefs.dart';
 import 'test_ids.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -51,7 +52,7 @@ class SettingsScreen extends StatelessWidget {
                 await p.setReminders(v);
               },
             ),
-            const _BlockfallSettings(),
+            _BlockfallSettings(profile: p),
             if (s.ads.privacyOptionsRequired)
               ListTile(
                 key: TestIds.settingsPrivacy,
@@ -80,29 +81,14 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-/// Controls scheme and ghost toggle (stored in [BlockfallPrefs]).
-class _BlockfallSettings extends StatefulWidget {
-  const _BlockfallSettings();
-
-  @override
-  State<_BlockfallSettings> createState() => _BlockfallSettingsState();
-}
-
-class _BlockfallSettingsState extends State<_BlockfallSettings> {
-  BlockfallPrefs? _prefs;
-
-  @override
-  void initState() {
-    super.initState();
-    BlockfallPrefs.load().then((p) {
-      if (mounted) setState(() => _prefs = p);
-    });
-  }
+/// Controls scheme and ghost toggle (stored in the profile's save data).
+class _BlockfallSettings extends StatelessWidget {
+  const _BlockfallSettings({required this.profile});
+  final ProfileStore profile;
 
   @override
   Widget build(BuildContext context) {
-    final p = _prefs;
-    final buttons = p?.controls == ControlScheme.buttons;
+    final buttons = profile.controlScheme == ControlScheme.buttons;
     return Column(
       children: [
         SwitchListTile(
@@ -114,26 +100,16 @@ class _BlockfallSettingsState extends State<_BlockfallSettings> {
                 : 'Controls: Touch (tap rotates, drag moves, fling drops)',
           ),
           value: buttons,
-          onChanged: p == null
-              ? null
-              : (v) async {
-                  await p.setControls(
-                    v ? ControlScheme.buttons : ControlScheme.touch,
-                  );
-                  if (mounted) setState(() {});
-                },
+          onChanged: (v) => profile.setControls(
+            v ? ControlScheme.buttons : ControlScheme.touch,
+          ),
         ),
         SwitchListTile(
           key: TestIds.settingsGhost,
           title: const Text('Ghost piece'),
           subtitle: const Text('Show where the piece will land'),
-          value: p?.ghost ?? true,
-          onChanged: p == null
-              ? null
-              : (v) async {
-                  await p.setGhost(v);
-                  if (mounted) setState(() {});
-                },
+          value: profile.data.ghostOn,
+          onChanged: profile.setGhost,
         ),
       ],
     );

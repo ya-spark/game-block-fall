@@ -3,6 +3,16 @@ import '../retention/daily_challenges.dart';
 import '../retention/daily_reward.dart';
 import '../retention/streaks.dart';
 
+/// How the falling piece is steered (Settings > controls).
+enum ControlScheme { touch, buttons }
+
+/// Power-up ids used in [SaveData.powerUps] (equal to `PowerUpType.name` in the game rules;
+/// a test keeps them in sync). `lib/core` must not import the game.
+const List<String> kPowerUpIds = ['sweep', 'slow', 'bomb'];
+
+/// Stock a fresh install starts with (1 of each).
+const Map<String, int> kInitialPowerUps = {'sweep': 1, 'slow': 1, 'bomb': 1};
+
 /// Everything persisted for the player. Plain JSON, versioned.
 class SaveData {
   const SaveData({
@@ -20,10 +30,13 @@ class SaveData {
     this.stats = const LifetimeStats(),
     this.unlockedAchievements = const {},
     this.processedPurchases = const {},
+    this.powerUps = kInitialPowerUps,
+    this.controls,
+    this.ghostOn = true,
   });
 
   /// Bump when the JSON shape changes and add a step to [SaveMigrator].
-  static const int currentVersion = 2;
+  static const int currentVersion = 3;
 
   final int coins;
   final int bestScore;
@@ -46,6 +59,18 @@ class SaveData {
   /// Purchase IDs already delivered, so a replayed purchase is not granted twice.
   final Set<String> processedPurchases;
 
+  /// Power-up stock by id (see [kPowerUpIds]); never negative.
+  final Map<String, int> powerUps;
+
+  /// Chosen control scheme, or null while the player has not picked one (the app default
+  /// applies, which `--dart-define=BLOCKFALL_CONTROLS=buttons` can set for the bot).
+  final ControlScheme? controls;
+
+  /// Show the landing ghost.
+  final bool ghostOn;
+
+  int powerUpCount(String id) => powerUps[id] ?? 0;
+
   SaveData copyWith({
     int? coins,
     int? bestScore,
@@ -61,6 +86,9 @@ class SaveData {
     LifetimeStats? stats,
     Set<String>? unlockedAchievements,
     Set<String>? processedPurchases,
+    Map<String, int>? powerUps,
+    ControlScheme? controls,
+    bool? ghostOn,
   }) => SaveData(
     coins: coins ?? this.coins,
     bestScore: bestScore ?? this.bestScore,
@@ -76,6 +104,9 @@ class SaveData {
     stats: stats ?? this.stats,
     unlockedAchievements: unlockedAchievements ?? this.unlockedAchievements,
     processedPurchases: processedPurchases ?? this.processedPurchases,
+    powerUps: powerUps ?? this.powerUps,
+    controls: controls ?? this.controls,
+    ghostOn: ghostOn ?? this.ghostOn,
   );
 
   Map<String, Object?> toJson() => {
@@ -94,6 +125,9 @@ class SaveData {
     'stats': stats.toJson(),
     'unlockedAchievements': unlockedAchievements.toList()..sort(),
     'processedPurchases': processedPurchases.toList()..sort(),
+    'powerUps': powerUps,
+    'controls': controls?.name,
+    'ghostOn': ghostOn,
   };
 
   /// Expects JSON already migrated to [currentVersion].
@@ -116,7 +150,21 @@ class SaveData {
     processedPurchases: {
       ...?(j['processedPurchases'] as List?)?.cast<String>(),
     },
+    powerUps: _powerUps(j['powerUps']),
+    controls: ControlScheme.values.asNameMap()[j['controls']],
+    ghostOn: j['ghostOn'] as bool? ?? true,
   );
+
+  static Map<String, int> _powerUps(Object? o) {
+    final m = _map(o);
+    return {
+      for (final id in kPowerUpIds)
+        id:
+            ((m?[id] is num ? (m![id]! as num).toInt() : null) ??
+                    kInitialPowerUps[id]!)
+                .clamp(0, 1 << 30),
+    };
+  }
 
   static Map<String, Object?>? _map(Object? o) =>
       o is Map ? o.cast<String, Object?>() : null;
@@ -136,6 +184,7 @@ abstract final class SaveMigrator {
       j = switch (v) {
         0 => _v0ToV1(j),
         1 => _v1ToV2(j),
+        2 => _v2ToV3(j),
         _ => throw StateError('No migration from $v'),
       };
       v = (j['version'] as num).toInt();
@@ -157,5 +206,19 @@ abstract final class SaveMigrator {
     'version': 2,
     'processedPurchases': j['processedPurchases'] ?? const <String>[],
     'savedAtMs': j['savedAtMs'] ?? 0,
+  };
+
+  /// v3 (Blockfall) added the power-up stock, the controls scheme and the ghost toggle,
+  /// and replaced the block-puzzle achievement set: unlocked ids that no longer exist are
+  /// dropped (their lifetime stats stay).
+  static Map<String, Object?> _v2ToV3(Map<String, Object?> j) => {
+    ...j,
+    'version': 3,
+    'powerUps': j['powerUps'] ?? kInitialPowerUps,
+    'ghostOn': j['ghostOn'] ?? true,
+    'unlockedAchievements': [
+      for (final id in (j['unlockedAchievements'] as List? ?? const []))
+        if (id is String && id.startsWith('ach_')) id,
+    ],
   };
 }

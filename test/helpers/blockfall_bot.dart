@@ -29,15 +29,16 @@ class BlockfallBot {
     }
   }
 
-  String _value(Key k) => tester.getSemantics(find.byKey(k)).value;
+  /// Semantics value of the node with test ID [k].
+  String value(Key k) => tester.getSemantics(find.byKey(k)).value;
 
-  int get score => int.parse(_value(TestIds.gameScore));
-  int get level => int.parse(_value(TestIds.gameLevel));
-  int get goal => int.parse(_value(TestIds.gameGoal));
-  int get combo => int.parse(_value(TestIds.gameCombo));
-  String get holdPiece => _value(TestIds.gameHoldPiece);
-  String nextPiece(int i) => _value(TestIds.gameNext(i));
-  int powerUpCount(Key countKey) => int.parse(_value(countKey));
+  int get score => int.parse(value(TestIds.gameScore));
+  int get level => int.parse(value(TestIds.gameLevel));
+  int get goal => int.parse(value(TestIds.gameGoal));
+  int get combo => int.parse(value(TestIds.gameCombo));
+  String get holdPiece => value(TestIds.gameHoldPiece);
+  String nextPiece(int i) => value(TestIds.gameNext(i));
+  int powerUpCount(Key countKey) => int.parse(value(countKey));
   bool get isGameOver =>
       find.byKey(TestIds.gameOverDialog).evaluate().isNotEmpty;
 

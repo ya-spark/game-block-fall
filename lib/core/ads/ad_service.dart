@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-enum AdPlacement { gameOver, revive }
+enum AdPlacement { gameOver, revive, powerUp }
 
 /// All advertising goes through this interface. UI/game code never imports an ad SDK.
 abstract interface class AdService {
@@ -33,6 +33,7 @@ class FakeAdService implements AdService {
   FakeAdService({this.rewardResult = true});
   bool rewardResult;
   int rewardedShown = 0;
+  final List<AdPlacement> rewardedPlacements = [];
   int interstitialsShown = 0;
   bool _removed = false;
 
@@ -47,6 +48,7 @@ class FakeAdService implements AdService {
   @override
   Future<bool> showRewarded(AdPlacement placement) async {
     rewardedShown++;
+    rewardedPlacements.add(placement);
     return rewardResult;
   }
 

@@ -15,6 +15,7 @@ import 'profile/profile_store.dart';
 import 'purchase/play_purchase_service.dart';
 import 'purchase/purchase_service.dart';
 import 'remote_config/remote_config_service.dart';
+import 'save/legacy_prefs_migration.dart';
 import 'save/play_games_save_stub.dart';
 import 'save/save_service.dart';
 
@@ -60,6 +61,7 @@ class Services {
     );
     final profile = ProfileStore(saves: saves, retention: config.retention);
     await profile.init();
+    await migrateLegacyBlockfallPrefs(prefs, profile);
 
     final ads = AdMobAdService(
       ids: config.admobFor(release: kReleaseMode),

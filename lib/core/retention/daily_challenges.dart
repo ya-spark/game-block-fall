@@ -4,9 +4,12 @@ import 'dart:math';
 enum ChallengeKind {
   scorePoints,
   clearLines,
-  placePieces,
-  playGames,
+  clearQuads,
+  reachLevel,
+  clearPrismRows,
   makeCombo,
+  useHold,
+  playGames,
 }
 
 class ChallengeTemplate {
@@ -23,7 +26,7 @@ class ChallengeTemplate {
   /// Uses `{n}` for the target.
   final String description;
 
-  /// Easy / medium / hard targets.
+  /// Easy to hard targets (2 or 3 tiers; [rewards] has the same length).
   final List<int> targets;
   final List<int> rewards;
 
@@ -73,6 +76,12 @@ class Challenge {
     'claimed': claimed,
   };
 
+  /// Null if the kind is unknown (saved by an older template set).
+  static Challenge? tryFromJson(Map<String, Object?> j) {
+    final kind = ChallengeKind.values.asNameMap()[j['kind']];
+    return kind == null ? null : Challenge.fromJson(j);
+  }
+
   factory Challenge.fromJson(Map<String, Object?> j) => Challenge(
     id: j['id'] as String,
     kind: ChallengeKind.values.byName(j['kind'] as String),
@@ -99,9 +108,10 @@ class DailyChallengesState {
       ? const DailyChallengesState()
       : DailyChallengesState(
           day: (j['day'] as num?)?.toInt() ?? -1,
+          // Challenges of a retired kind are dropped; ensureToday then refills the day.
           challenges: [
             for (final c in (j['challenges'] as List? ?? const []))
-              Challenge.fromJson((c as Map).cast<String, Object?>()),
+              ?Challenge.tryFromJson((c as Map).cast<String, Object?>()),
           ],
         );
 }
@@ -109,40 +119,64 @@ class DailyChallengesState {
 abstract final class DailyChallengeEngine {
   static const int perDay = 3;
 
+  /// The eight falling-blocks templates (rewards 25 to 60 coins).
   static const List<ChallengeTemplate> templates = [
     ChallengeTemplate(
       ChallengeKind.scorePoints,
       'Score {n} points in one game',
-      [300, 600, 1000],
-      [20, 40, 80],
+      [3000, 5000, 8000],
+      [25, 40, 60],
       isMax: true,
     ),
     ChallengeTemplate(
       ChallengeKind.clearLines,
-      'Clear {n} lines',
-      [8, 15, 25],
-      [20, 40, 80],
+      'Clear {n} lines today',
+      [20, 40, 60],
+      [25, 40, 60],
     ),
     ChallengeTemplate(
-      ChallengeKind.placePieces,
-      'Place {n} pieces',
-      [30, 60, 100],
-      [20, 40, 80],
+      ChallengeKind.clearQuads,
+      'Clear 4 rows at once {n} times',
+      [1, 2, 3],
+      [25, 40, 60],
+    ),
+    ChallengeTemplate(
+      ChallengeKind.reachLevel,
+      'Reach level {n} in one game',
+      [4, 6, 8],
+      [25, 40, 60],
+      isMax: true,
+    ),
+    ChallengeTemplate(
+      ChallengeKind.clearPrismRows,
+      'Clear {n} rows with a prism',
+      [3, 6],
+      [30, 50],
+    ),
+    ChallengeTemplate(
+      ChallengeKind.makeCombo,
+      'Make a x{n} combo in one game',
+      [3, 4, 5],
+      [25, 40, 60],
+      isMax: true,
+    ),
+    ChallengeTemplate(
+      ChallengeKind.useHold,
+      'Use Hold {n} times',
+      [10, 20],
+      [25, 45],
     ),
     ChallengeTemplate(
       ChallengeKind.playGames,
       'Play {n} games',
-      [2, 4, 6],
-      [20, 40, 80],
-    ),
-    ChallengeTemplate(
-      ChallengeKind.makeCombo,
-      'Reach a x{n} combo',
-      [2, 3, 4],
-      [20, 40, 80],
-      isMax: true,
+      [3, 5],
+      [25, 45],
     ),
   ];
+
+  /// Tier of the i-th daily pick (0 easy, 1 medium, 2 hard) mapped onto [t]'s tiers.
+  static int tierFor(ChallengeTemplate t, int i) =>
+      i * (t.targets.length - 1) ~/ (perDay - 1);
 
   /// Makes sure the state holds today's three challenges. Deterministic per day
   /// (seeded by the day index) so it is identical across reinstalls on the same day.
@@ -160,10 +194,10 @@ abstract final class DailyChallengeEngine {
             kind: picks[i].kind,
             description: picks[i].description.replaceAll(
               '{n}',
-              '${picks[i].targets[i]}',
+              '${picks[i].targets[tierFor(picks[i], i)]}',
             ),
-            target: picks[i].targets[i],
-            reward: picks[i].rewards[i],
+            target: picks[i].targets[tierFor(picks[i], i)],
+            reward: picks[i].rewards[tierFor(picks[i], i)],
           ),
       ],
     );

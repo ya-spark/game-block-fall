@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:blockfall/app.dart';
-import 'package:blockfall/core/retention/daily_reward.dart';
 import 'package:blockfall/core/services.dart';
+import 'package:blockfall/ui/game_screen.dart';
 import 'package:blockfall/ui/test_ids.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -27,9 +27,30 @@ void main() {
       TestIds.homeSettings,
       TestIds.homeCoins,
       TestIds.homeBestScore,
+      TestIds.homeBanner,
     ]) {
       expect(find.byKey(k), findsOneWidget, reason: '$k');
     }
+  });
+
+  testWidgets('the banner lives on Home only, not on the game screen', (
+    tester,
+  ) async {
+    final s = await buildFakeServices();
+    await pumpApp(tester, s);
+    expect(find.byKey(TestIds.homeBanner), findsOneWidget);
+    await tester.tap(find.byKey(TestIds.homePlay));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(TestIds.gameWidget), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(GameScreen),
+        matching: find.byKey(TestIds.homeBanner),
+      ),
+      findsNothing,
+    );
+    expect(find.byKey(TestIds.gameBanner), findsNothing);
   });
 
   testWidgets('daily reward screen: claim adds coins and disables the button', (
@@ -42,7 +63,7 @@ void main() {
     expect(find.byKey(TestIds.dailyDay(6)), findsOneWidget);
     await tester.tap(find.byKey(TestIds.dailyClaim));
     await tester.pumpAndSettle();
-    expect(s.profile.data.coins, DailyRewardEngine.coinsByDay[0]);
+    expect(s.profile.data.coins, 30);
     final btn = tester.widget<FilledButton>(find.byKey(TestIds.dailyClaim));
     expect(btn.onPressed, isNull);
   });
@@ -57,7 +78,10 @@ void main() {
       for (var i = 0; i < 3; i++) {
         expect(find.byKey(TestIds.challengeTile(i)), findsOneWidget);
       }
-      expect(find.byKey(TestIds.achievementTile('first_game')), findsOneWidget);
+      expect(
+        find.byKey(TestIds.achievementTile('ach_first_row')),
+        findsOneWidget,
+      );
     },
   );
 

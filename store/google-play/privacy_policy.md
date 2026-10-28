@@ -1,20 +1,34 @@
-# Privacy Policy – DRAFT (have a lawyer review before publishing)
+# Privacy Policy for Blockfall - DRAFT (owner/lawyer review before publishing)
 
-_Last updated: YYYY-MM-DD. Developer: PLACEHOLDER. Contact: PLACEHOLDER@example.com_
+_Last updated: 2026-10-28. Developer: PLACEHOLDER_DEVELOPER_NAME. Contact: PLACEHOLDER@example.com_
 
-**What the app stores on your device:** game progress, settings and purchase status.
-This stays on your device (and, if you sign in with Google Play Games, in your Google Play Games saved data).
+Blockfall (package `com.activemindcraft.blockfall`) is a single-player game. It has no account system and no server of its own.
 
-**Advertising:** The app shows ads through Google AdMob. AdMob may collect your device's advertising
-ID and approximate location to serve and measure ads, and may use cookies/identifiers.
-In the EEA/UK we ask for your consent before showing personalised ads; you can change this in Settings.
-See https://policies.google.com/technologies/ads.
+## Data stored on your device
+Game progress, best score, coins, power-up stock, streaks, challenges, settings and purchase status are stored locally on your device. We cannot see this data. Uninstalling the app or clearing its storage removes it.
 
-**Purchases:** Handled by Google Play. We do not receive your payment details.
+## Advertising (Google AdMob)
+Blockfall shows banner, interstitial and optional rewarded ads through Google AdMob. AdMob may collect and use your device's advertising ID, approximate location (from your IP address), ad interaction data and diagnostics to serve, measure and secure ads, and may share this with its partners. See https://policies.google.com/technologies/ads and https://policies.google.com/privacy.
 
-**Analytics / servers:** The app has no server of its own and does not collect analytics in this version.
+Where required (for example the EEA and UK) we ask for your consent with Google's consent form before ads are requested. You can review your choice any time from "Ad privacy options" in Settings. You can also reset or delete your advertising ID, or opt out of ad personalisation, in your Android settings (Settings > Privacy > Ads).
 
-**Children:** The app is not directed to children under 13.
+## Purchases
+Optional purchases ("Remove Ads", "Coin Pack") are processed by Google Play. We do not receive your payment details.
 
-**Your choices:** Reset your advertising ID in Android settings; use the privacy options in Settings;
-uninstall the app to remove local data.
+## Notifications
+If you opt in, the app schedules a local daily-reward reminder on your device. No push service is used and no data is sent anywhere. You can turn it off in Settings or in Android settings.
+
+## Analytics, accounts and servers
+We do not run any analytics, crash-reporting or backend service, and we do not ask for your name, email or other personal details. The app does not use Firebase. Only Google AdMob and Google Play (billing) communicate over the network.
+
+## Google Play Games
+This version does not use Google Play Games sign-in. If a later version adds it, this policy will be updated first and the feature will be optional.
+
+## Children
+Blockfall is not designed for or directed to children under 13, and we do not knowingly collect their data.
+
+## Permissions
+Internet (ads and purchases), notifications (optional reminder), run at startup (restore the reminder after reboot), advertising ID (AdMob).
+
+## Changes and contact
+We may update this policy; the date above shows the latest version. Questions: PLACEHOLDER@example.com.

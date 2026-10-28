@@ -45,6 +45,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final s = ServicesScope.of(context);
     final profile = s.profile;
     return Scaffold(
+      // The only banner in the app: Home (never in play or on the game over dialog).
+      bottomNavigationBar: s.config.adPacing.bannerEnabled
+          ? SafeArea(
+              child: KeyedSubtree(
+                key: TestIds.homeBanner,
+                child: s.ads.buildBanner(),
+              ),
+            )
+          : null,
       body: SafeArea(
         child: ListenableBuilder(
           listenable: profile,

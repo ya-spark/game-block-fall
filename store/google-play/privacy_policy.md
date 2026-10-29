@@ -1,4 +1,4 @@
-# Privacy Policy for Blockfall - DRAFT (owner/lawyer review before publishing)
+# Privacy Policy for Blockfall
 
 _Last updated: 2026-10-28. Developer: Yaseen. Contact: ggadmuser@gmail.com_
 

@@ -1,6 +1,6 @@
 # Privacy Policy for Blockfall
 
-_Last updated: 2026-10-28. Developer: Yaseen. Contact: ggadmuser@gmail.com_
+_Last updated: 2026-10-28. Developer: Active Mind Craft. Contact: ggadmuser@gmail.com_
 
 Blockfall (package `com.activemindcraft.blockfall`) is a single-player game. It has no account system and no server of its own.
 

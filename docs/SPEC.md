@@ -1,6 +1,6 @@
 # Blockfall - game spec
 
-Status: APPROVED by the user on 2026-10-28. This is the contract for all later stages. This file is the contract for the game (copied from app-factory registry/specs/blockfall.md).
+Status: APPROVED by the user on 2026-10-28. This is the contract for all later stages. This file is the contract for the game (copied from game-factory registry/specs/blockfall.md).
 
 Implementation status (updated by the coder stage, chunk 3): sections 1 to 7, 9 and 12 are implemented and covered by tests; nothing is open in the code except the items below that need a real device. Accepted deviations: (a) Settings uses a single "On-screen buttons" switch for the Touch/Buttons scheme instead of a segmented control (`settings.controls` is that switch); (b) **no sound or audio in v1**: section 8 sounds are not built (the Sound switch exists in Settings but is inert), haptics are implemented; (c) the achievement "Prism Collector" counts cleared rows that hold a prism (a row with two prisms counts once); (d) the daily-reward cycle replaced the template's coin-only cycle, and the old block-puzzle challenges and achievements were removed (old unlocked ids are dropped in the v3 save migration). Still to verify on a device or in the manual emulator job: real-AdMob test-ad behaviour, haptics, Flame frame rate, backgrounding, `integration_test/blockfall_bot_test.dart`. Not part of this stage: store listing text and privacy policy (listing stage), icon and screenshots (asset stage).
 
@@ -9,7 +9,7 @@ Implementation status (updated by the coder stage, chunk 3): sections 1 to 7, 9 
 - Naming rule: the strings "Tetris" and "Block Blast", their logos, art, sounds, and piece letter-names-as-branding must not appear in code, assets, listing or keywords. Pieces are called by the original names in section 4.
 
 ## 1. Pitch
-Blockfall is a single-player falling-blocks game for Android. Glossy gem pieces drop into a 10-wide well; fill a row and it clears. Hold a piece, peek at the next three, grab power-ups, and race the speed as levels climb. Original twist: **Prism cells**. Some pieces carry one glowing prism gem; clearing a row that contains one doubles that row's score and pays out coins. It targets casual players who want a quick, polished classic with daily goals, and plays well in 3 to 10 minute sessions. Look: midnight-teal gradient, glossy rounded gem blocks, glowing score pill (the app-factory block puzzle identity).
+Blockfall is a single-player falling-blocks game for Android. Glossy gem pieces drop into a 10-wide well; fill a row and it clears. Hold a piece, peek at the next three, grab power-ups, and race the speed as levels climb. Original twist: **Prism cells**. Some pieces carry one glowing prism gem; clearing a row that contains one doubles that row's score and pays out coins. It targets casual players who want a quick, polished classic with daily goals, and plays well in 3 to 10 minute sessions. Look: midnight-teal gradient, glossy rounded gem blocks, glowing score pill (the game-factory block puzzle identity).
 
 ## 2. Core loop
 - Second to second: move, rotate, soft/hard drop the falling piece; decide whether to Hold; read the Next queue.

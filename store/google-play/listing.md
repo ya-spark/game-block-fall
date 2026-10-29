@@ -45,4 +45,4 @@ Drop, clear, repeat. Download Blockfall and beat your best score.
 **In-app purchases:** Yes (Remove Ads, Coin Pack)
 **Target audience:** 13+ (teen and general audience). Not designed for children; do not opt into Families.
 **Content rating (IARC questionnaire, expected result: Everyone / PEGI 3):** no violence, no blood, no sexual content, no profanity, no gambling or simulated gambling (coins have no cash value and cannot be bought into chance rewards), no controlled substances, no user-generated content, no user interaction or chat, no location sharing. Contains ads and optional in-app purchases.
-**Developer:** Yaseen. **Contact email:** ggadmuser@gmail.com. **Privacy policy URL:** https://ya-spark.github.io/public/blockfall/privacy (source: ya-spark/public; Pages must be enabled).
+**Developer:** Active Mind Craft. **Contact email:** ggadmuser@gmail.com. **Privacy policy URL:** https://ya-spark.github.io/public/blockfall/privacy (source: ya-spark/public; Pages must be enabled).

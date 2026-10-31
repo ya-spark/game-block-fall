@@ -1,6 +1,6 @@
-# Blockfall
+# Block Fall
 
-Blockfall is a single-player falling-blocks puzzle for Android, built with Flutter and Flame.
+Block Fall is a single-player falling-blocks puzzle for Android, built with Flutter and Flame.
 Glossy gem pieces drop into a 10-wide well. Fill a row and it clears. Hold a piece, peek at the
 next three, race the speed through 15 levels, and use three power-ups (Sweep, Slow, Bomb) when
 the stack gets high. The original twist is the **prism**: some pieces carry one glowing gem, and

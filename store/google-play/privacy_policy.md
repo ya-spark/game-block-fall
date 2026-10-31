@@ -1,14 +1,14 @@
-# Privacy Policy for Blockfall
+# Privacy Policy for Block Fall
 
 _Last updated: 2026-10-28. Developer: Active Mind Craft. Contact: ggadmuser@gmail.com_
 
-Blockfall (package `com.activemindcraft.blockfall`) is a single-player game. It has no account system and no server of its own.
+Block Fall (package `com.activemindcraft.blockfall`) is a single-player game. It has no account system and no server of its own.
 
 ## Data stored on your device
 Game progress, best score, coins, power-up stock, streaks, challenges, settings and purchase status are stored locally on your device. We cannot see this data. Uninstalling the app or clearing its storage removes it.
 
 ## Advertising (Google AdMob)
-Blockfall shows banner, interstitial and optional rewarded ads through Google AdMob. AdMob may collect and use your device's advertising ID, approximate location (from your IP address), ad interaction data and diagnostics to serve, measure and secure ads, and may share this with its partners. See https://policies.google.com/technologies/ads and https://policies.google.com/privacy.
+Block Fall shows banner, interstitial and optional rewarded ads through Google AdMob. AdMob may collect and use your device's advertising ID, approximate location (from your IP address), ad interaction data and diagnostics to serve, measure and secure ads, and may share this with its partners. See https://policies.google.com/technologies/ads and https://policies.google.com/privacy.
 
 Where required (for example the EEA and UK) we ask for your consent with Google's consent form before ads are requested. You can review your choice any time from "Ad privacy options" in Settings. You can also reset or delete your advertising ID, or opt out of ad personalisation, in your Android settings (Settings > Privacy > Ads).
 
@@ -25,7 +25,7 @@ We do not run any analytics, crash-reporting or backend service, and we do not a
 This version does not use Google Play Games sign-in. If a later version adds it, this policy will be updated first and the feature will be optional.
 
 ## Children
-Blockfall is not designed for or directed to children under 13, and we do not knowingly collect their data.
+Block Fall is not designed for or directed to children under 13, and we do not knowingly collect their data.
 
 ## Permissions
 Internet (ads and purchases), notifications (optional reminder), run at startup (restore the reminder after reboot), advertising ID (AdMob).

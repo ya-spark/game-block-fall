@@ -18,6 +18,7 @@ abstract final class PowerUpRules {
   static const double slowFactor = 2;
   static const int bombRadius = 1;
   static const int reviveClearRows = 8;
+  static const int maxRevivesPerRun = 3;
 }
 
 /// Outcome of [BlockfallGame.usePowerUp].

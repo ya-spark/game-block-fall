@@ -472,4 +472,22 @@ void main() {
       expect(Well.totalRows, 22);
     });
   });
+
+  group('soft drop latch', () {
+    test('soft drop stays on the current piece until released', () {
+      final g = mk();
+      g.softDrop(true);
+      expect(g.isSoftDropping, isTrue);
+      g.hardDrop(); // current piece locks, next spawns
+      expect(g.isSoftDropping, isFalse);
+      g.softDrop(true); // finger still down: move events keep re-asserting
+      expect(g.isSoftDropping, isFalse);
+      final row = g.currentPiece!.row;
+      g.tick(0.5);
+      expect(g.currentPiece!.row - row, lessThanOrEqualTo(1));
+      g.softDrop(false); // finger lifted
+      g.softDrop(true); // new gesture
+      expect(g.isSoftDropping, isTrue);
+    });
+  });
 }

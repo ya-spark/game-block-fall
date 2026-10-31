@@ -54,7 +54,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             )
           : null,
-      body: SafeArea(
+      body: KidBackground(
+        child: SafeArea(
         child: ListenableBuilder(
           listenable: profile,
           builder: (context, _) {
@@ -63,28 +64,44 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  spacing: 14,
+                  spacing: 10,
                   children: [
-                    Text(
-                      s.config.displayName,
-                      style: Theme.of(context).textTheme.displayMedium,
-                      textAlign: TextAlign.center,
+                    PopIn(
+                      child: Text(
+                        '\u{1F9E9} ${s.config.displayName} \u{2728}',
+                        style: const TextStyle(
+                          fontSize: 38,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              color: KidColors.purpleDark,
+                              blurRadius: 0,
+                              offset: Offset(3, 4),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                     Wrap(
                       spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
                       children: [
                         KeyedSubtree(
                           key: TestIds.homeCoins,
                           child: StatChip(
                             icon: Icons.monetization_on,
                             label: '${profile.data.coins}',
-                            color: Colors.amber,
+                            color: KidColors.orange,
                           ),
                         ),
                         KeyedSubtree(
                           key: TestIds.homeBestScore,
                           child: StatChip(
                             icon: Icons.emoji_events,
+                            color: KidColors.purple,
                             label: 'Best ${profile.data.bestScore}',
                           ),
                         ),
@@ -104,7 +121,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       key: TestIds.homePlay,
                       label: 'Play',
                       icon: Icons.play_arrow,
+                      emoji: '\u{25B6}\u{FE0F}',
                       primary: true,
+                      top: KidColors.green,
+                      bottom: KidColors.greenDark,
                       onPressed: () => _open(const GameScreen()),
                     ),
                     if (s.config.retention.dailyReward)
@@ -112,6 +132,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         key: TestIds.homeDailyReward,
                         label: 'Daily reward',
                         icon: Icons.card_giftcard,
+                        emoji: '\u{1F381}',
+                        top: KidColors.pink,
+                        bottom: KidColors.pinkDark,
+                        index: 1,
                         badge: profile.dailyRewardAvailable,
                         onPressed: () => _open(const DailyRewardScreen()),
                       ),
@@ -121,6 +145,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         key: TestIds.homeChallenges,
                         label: 'Challenges',
                         icon: Icons.flag,
+                        emoji: '\u{1F3C6}',
+                        top: KidColors.sun,
+                        bottom: KidColors.orange,
+                        index: 2,
                         badge: claimable,
                         onPressed: () => _open(const ChallengesScreen()),
                       ),
@@ -128,12 +156,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       key: TestIds.homeShop,
                       label: 'Shop',
                       icon: Icons.shopping_cart,
+                      emoji: '\u{1F6D2}',
+                      top: KidColors.purple,
+                      bottom: KidColors.purpleDark,
+                      index: 3,
                       onPressed: () => _open(const ShopScreen()),
                     ),
                     MenuButton(
                       key: TestIds.homeSettings,
                       label: 'Settings',
                       icon: Icons.settings,
+                      emoji: '\u{2699}\u{FE0F}',
+                      index: 4,
                       onPressed: () => _open(const SettingsScreen()),
                     ),
                   ],
@@ -141,6 +175,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             );
           },
+        ),
         ),
       ),
     );

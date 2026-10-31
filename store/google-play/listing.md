@@ -1,6 +1,6 @@
 # Listing (en-US) - DRAFT, owner review required
 
-**Title (<=30):** Block Fall: Gem Drop Puzzle
+**Title (<=30):** Block Fall
 
 **Short description (<=80):** Drop glowing gem pieces, clear rows, grab prisms. Hold, Next and power-ups.
 

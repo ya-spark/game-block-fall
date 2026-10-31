@@ -71,7 +71,11 @@ class StatChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(24),
       border: Border.all(color: color ?? KidColors.purple, width: 3),
       boxShadow: const [
-        BoxShadow(color: Color(0x33000000), blurRadius: 4, offset: Offset(0, 2)),
+        BoxShadow(
+          color: Color(0x33000000),
+          blurRadius: 4,
+          offset: Offset(0, 2),
+        ),
       ],
     ),
     child: Row(

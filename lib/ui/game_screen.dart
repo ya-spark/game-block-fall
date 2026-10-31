@@ -227,9 +227,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             FilledButton.icon(
               key: TestIds.gameOverRevive,
               icon: const Icon(Icons.smart_display),
-              label: Text(
-                'Revive (watch ad) - ${game.revivesRemaining} left',
-              ),
+              label: Text('Revive (watch ad) - ${game.revivesRemaining} left'),
               onPressed: () => Navigator.pop(ctx, 'revive'),
             ),
           TextButton(

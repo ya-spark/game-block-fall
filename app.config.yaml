@@ -3,7 +3,7 @@
 #          scripts/ad_safety_check.sh (CI).
 app:
   id: blockfall
-  display_name: "Blockfall"
+  display_name: "Block Fall"
   package_name: com.activemindcraft.blockfall
 
 theme:

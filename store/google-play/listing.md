@@ -1,12 +1,12 @@
 # Listing (en-US) - DRAFT, owner review required
 
-**Title (<=30):** Blockfall: Gem Drop Puzzle
+**Title (<=30):** Block Fall: Gem Drop Puzzle
 
 **Short description (<=80):** Drop glowing gem pieces, clear rows, grab prisms. Hold, Next and power-ups.
 
 **Full description (<=4000):**
 
-Blockfall is a polished falling-blocks puzzle for quick breaks and long sessions alike. Glossy gem pieces drop into a 10-wide well. Fill a row and it clears. Keep the stack low as the speed climbs through 15 levels.
+Block Fall is a polished falling-blocks puzzle for quick breaks and long sessions alike. Glossy gem pieces drop into a 10-wide well. Fill a row and it clears. Keep the stack low as the speed climbs through 15 levels.
 
 NEW: PRISM GEMS
 Every few pieces carry a glowing prism gem. Clear a row that contains one and that row scores double and pays out bonus coins. Plan your drops to collect them.
@@ -36,7 +36,7 @@ GOOD TO KNOW
 - Free to play with ads. A one-time purchase removes banner and interstitial ads. Optional rewarded ads let you refill a power-up or continue once after a game over.
 - Optional coin pack available as an in-app purchase.
 
-Drop, clear, repeat. Download Blockfall and beat your best score.
+Drop, clear, repeat. Download Block Fall and beat your best score.
 
 **Keywords / tags (not a Play field; use in description wording only):** falling blocks, gem puzzle, row clear, offline puzzle
 

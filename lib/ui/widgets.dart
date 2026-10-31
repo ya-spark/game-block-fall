@@ -171,15 +171,23 @@ class _MenuButtonState extends State<MenuButton> {
                       size: widget.primary ? 38 : 30,
                     ),
                   const SizedBox(width: 10),
-                  Text(
-                    widget.label,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: widget.primary ? 32 : 24,
-                      fontWeight: FontWeight.w900,
-                      shadows: const [
-                        Shadow(color: Color(0x66000000), offset: Offset(0, 2)),
-                      ],
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        widget.label,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: widget.primary ? 32 : 24,
+                          fontWeight: FontWeight.w900,
+                          shadows: const [
+                            Shadow(
+                              color: Color(0x66000000),
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],

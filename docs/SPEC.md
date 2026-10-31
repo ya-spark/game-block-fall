@@ -137,7 +137,7 @@ Reference layout for the game screen (portrait): score pill on top, well in the 
 - Achievements: the 10 in section 5, ids `ach_first_row`, `ach_century`, `ach_quad_squad`, `ach_prism_collector`, `ach_combo_master`, `ach_speed_demon`, `ach_perfect`, `ach_hold_tactician`, `ach_marathoner`, `ach_daily_devotee`. Created in Play Console by the user; the game works fully offline/unsigned.
 
 ## 10. Store listing
-- Title: Blockfall: Gem Drop Puzzle (max 30 chars)
+- Title: Block Fall (max 30 chars)
 - Short (80 chars): Drop glowing gem pieces, clear rows, grab prisms. Hold, Next and power-ups.
 - Full description: describe classic row clearing with an original Prism twist, Hold and 3-piece Next queue, 15 speed levels, three power-ups, daily rewards, streaks, daily challenges, achievements, play offline, no account needed, ads removable with a one-time purchase. No mention of other games' names.
 - Category: Games > Puzzle. Content rating: Everyone, contains ads, optional in-app purchases. Keywords: falling blocks, gem puzzle, row clear, offline puzzle (never Tetris/Block Blast).

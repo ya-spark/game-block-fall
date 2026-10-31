@@ -82,7 +82,8 @@ class BlockfallGame {
   bool _soft = false;
   bool _gameOver = false;
   GameOverReason? _gameOverReason;
-  bool _reviveUsed = false;
+  int _revivesUsed = 0;
+  bool _softLatchedOff = false;
   int _adRefills = 0;
   double _slowRemaining = 0;
 
@@ -110,8 +111,12 @@ class BlockfallGame {
 
   bool get isGameOver => _gameOver;
   GameOverReason? get gameOverReason => _gameOverReason;
-  bool get canRevive => _gameOver && !_reviveUsed;
-  bool get reviveUsed => _reviveUsed;
+  bool get canRevive => _gameOver && revivesRemaining > 0;
+  bool get reviveUsed => _revivesUsed > 0;
+  int get revivesUsed => _revivesUsed;
+
+  /// Ad revives left in this run (resets with every new game instance).
+  int get revivesRemaining => PowerUpRules.maxRevivesPerRun - _revivesUsed;
 
   /// Pausing stops gravity, the lock timer, Slow and all input.
   bool isPaused = false;
@@ -199,7 +204,18 @@ class BlockfallGame {
   }
 
   /// Holds soft drop on or off (falls at 20x gravity, +1 point per row).
-  void softDrop(bool active) => _soft = active;
+  ///
+  /// The drop is latched to the current piece: once it locks (or is held away) the soft drop
+  /// switches off and stays off until the caller releases it with `softDrop(false)`, so a
+  /// long swipe never drags the next piece down.
+  void softDrop(bool active) {
+    if (!active) {
+      _softLatchedOff = false;
+      _soft = false;
+    } else if (!_softLatchedOff) {
+      _soft = true;
+    }
+  }
 
   /// Drops to the ghost position and locks at once (+2 per row). Returns rows dropped.
   int hardDrop() {
@@ -222,6 +238,7 @@ class BlockfallGame {
     _hold = current;
     _canHold = false;
     holdsUsed++;
+    _latchSoftOff();
     _events.add(const HoldUsed());
     _spawn(held ?? _popQueue());
     return true;
@@ -284,10 +301,10 @@ class BlockfallGame {
     return true;
   }
 
-  /// Revive once per game after game over: clears the top 8 rows, spawns the next piece.
+  /// Revive (up to [PowerUpRules.maxRevivesPerRun] per run) after game over: clears the top 8 rows, spawns the next piece.
   bool revive() {
     if (!canRevive) return false;
-    _reviveUsed = true;
+    _revivesUsed++;
     _gameOver = false;
     _gameOverReason = null;
     well.clearRowRange(0, PowerUpRules.reviveClearRows);
@@ -409,6 +426,7 @@ class BlockfallGame {
   }
 
   void _lock() {
+    _latchSoftOff();
     final p = _active!;
     _active = null;
     _canHold = true;
@@ -497,6 +515,11 @@ class BlockfallGame {
     );
     if (coins > 0) _events.add(PrismCoinsEarned(coins));
     _addLines(n);
+  }
+
+  void _latchSoftOff() {
+    if (_soft) _softLatchedOff = true;
+    _soft = false;
   }
 
   void _endGame(GameOverReason reason) {

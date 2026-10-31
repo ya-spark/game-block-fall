@@ -269,20 +269,32 @@ void main() {
       },
     );
 
-    test('the second game over offers no revive', () {
+    test('up to three revives per run, then none', () {
       final g = lockedOut();
       g.hardDrop();
-      g.revive();
-      for (var r = 2; r < 22; r++) {
-        for (var c = 3; c <= 6; c++) {
-          g.well.set(r, c, 2);
+      expect(g.revivesRemaining, 3);
+      for (var i = 0; i < 3; i++) {
+        expect(g.canRevive, isTrue, reason: 'revive $i');
+        expect(g.revive(), isTrue);
+        expect(g.revivesRemaining, 2 - i);
+        for (var r = 2; r < 22; r++) {
+          for (var c = 3; c <= 6; c++) {
+            g.well.set(r, c, 2);
+          }
         }
+        g.hardDrop();
+        expect(g.isGameOver, isTrue);
       }
-      g.hardDrop();
-      expect(g.isGameOver, isTrue);
       expect(g.canRevive, isFalse);
       expect(g.revive(), isFalse);
       expect(g.isGameOver, isTrue);
+    });
+
+    test('a new game starts with three revives again', () {
+      final g = lockedOut();
+      g.hardDrop();
+      g.revive();
+      expect(mk().revivesRemaining, 3);
     });
 
     test('revive after a block out re-spawns the piece that did not fit', () {

@@ -43,6 +43,8 @@ jobs:
         run: bash scripts/no_secrets_check.sh
       - name: Play promote script tests
         run: python3 scripts/test_play_promote.py
+      - name: Play status script tests
+        run: python3 scripts/test_play_status.py
       - name: Naming rule (no trademarked names)
         run: bash scripts/naming_check.sh
 

@@ -8,6 +8,9 @@ import 'widgets.dart';
 class DailyRewardScreen extends StatelessWidget {
   const DailyRewardScreen({super.key});
 
+  static double _cardWidth(BuildContext context) =>
+      ((MediaQuery.sizeOf(context).width - 32 - 24) / 4).clamp(60.0, 110.0);
+
   @override
   Widget build(BuildContext context) {
     final s = ServicesScope.of(context);
@@ -45,46 +48,47 @@ class DailyRewardScreen extends StatelessWidget {
                                   'Streak: ${profile.displayStreak} days  \u2022  Freezes: ${profile.data.streak.freezes}',
                             ),
                           const SizedBox(height: 16),
-                          GridView.count(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            scrollCacheExtent: const ScrollCacheExtent.pixels(
-                              2000,
-                            ),
-                            crossAxisCount: 4,
-                            childAspectRatio: 0.8,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.center,
                             children: [
                               for (
                                 var i = 0;
                                 i < DailyRewardEngine.cycleLength;
                                 i++
                               )
-                                Card(
-                                  key: TestIds.dailyDay(i),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  color: i < claimedThrough
-                                      ? const Color(0xFFBBF7D0)
-                                      : (i == today && available
-                                            ? KidColors.sun
-                                            : Colors.white),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text('Day ${i + 1}'),
-                                      Icon(
-                                        DailyRewardEngine.rewards[i].coins > 0
-                                            ? Icons.monetization_on
-                                            : Icons.bolt,
-                                        color: KidColors.orange,
-                                      ),
-                                      Text(DailyRewardEngine.rewards[i].label),
-                                      if (i < claimedThrough)
-                                        const Icon(Icons.check, size: 16),
-                                    ],
+                                SizedBox(
+                                  width: _cardWidth(context),
+                                  height: _cardWidth(context) / 0.8,
+                                  child: Card(
+                                    key: TestIds.dailyDay(i),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(18),
+                                    ),
+                                    color: i < claimedThrough
+                                        ? const Color(0xFFBBF7D0)
+                                        : (i == today && available
+                                              ? KidColors.sun
+                                              : Colors.white),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text('Day ${i + 1}'),
+                                        Icon(
+                                          DailyRewardEngine.rewards[i].coins > 0
+                                              ? Icons.monetization_on
+                                              : Icons.bolt,
+                                          color: KidColors.orange,
+                                        ),
+                                        Text(
+                                          DailyRewardEngine.rewards[i].label,
+                                        ),
+                                        if (i < claimedThrough)
+                                          const Icon(Icons.check, size: 16),
+                                      ],
+                                    ),
                                   ),
                                 ),
                             ],

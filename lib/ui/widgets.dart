@@ -83,12 +83,17 @@ class StatChip extends StatelessWidget {
       children: [
         Icon(icon, size: 24, color: color ?? KidColors.purple),
         const SizedBox(width: 6),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: KidColors.ink,
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: KidColors.ink,
+              ),
+            ),
           ),
         ),
       ],
@@ -202,13 +207,52 @@ class _MenuButtonState extends State<MenuButton> {
       child: SizedBox(
         width: 300,
         height: height,
-        child: Badge(
-          isLabelVisible: widget.badge,
-          smallSize: 18,
+        child: _BadgeDot(
+          show: widget.badge,
+          size: 18,
           backgroundColor: Colors.redAccent,
           child: SizedBox.expand(child: button),
         ),
       ),
     );
   }
+}
+
+/// Small notification dot on a button's corner. Unlike [Badge] it never takes part
+/// in hit testing, so the button underneath stays tappable.
+class _BadgeDot extends StatelessWidget {
+  const _BadgeDot({
+    required this.show,
+    required this.size,
+    required this.backgroundColor,
+    required this.child,
+  });
+  final bool show;
+  final double size;
+  final Color backgroundColor;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Stack(
+    clipBehavior: Clip.none,
+    children: [
+      Positioned.fill(child: child),
+      if (show)
+        Positioned(
+          top: -2,
+          right: 6,
+          child: IgnorePointer(
+            child: Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+            ),
+          ),
+        ),
+    ],
+  );
 }

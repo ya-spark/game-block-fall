@@ -18,7 +18,7 @@ class DailyRewardScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('\u{1F381} Daily reward'),
-        backgroundColor: KidColors.pink,
+        backgroundColor: KidColors.teal,
         foregroundColor: Colors.white,
       ),
       body: KidBackground(

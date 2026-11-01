@@ -64,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    spacing: 10,
+                    spacing: 14,
                     children: [
                       PopIn(
                         child: Text(
@@ -133,8 +133,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           label: 'Daily reward',
                           icon: Icons.card_giftcard,
                           emoji: '\u{1F381}',
-                          top: KidColors.pink,
-                          bottom: KidColors.pinkDark,
+                          top: KidColors.teal,
+                          bottom: KidColors.tealDark,
                           index: 1,
                           badge: profile.dailyRewardAvailable,
                           onPressed: () => _open(const DailyRewardScreen()),

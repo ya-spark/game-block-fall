@@ -4,15 +4,15 @@ import 'package:flutter/material.dart';
 class KidColors {
   static const sky1 = Color(0xFF7DD3FC);
   static const sky2 = Color(0xFFC4B5FD);
-  static const sky3 = Color(0xFFFBCFE8);
+  static const sky3 = Color(0xFFFDE68A);
   static const sun = Color(0xFFFFC93C);
   static const orange = Color(0xFFFF8A3D);
   static const green = Color(0xFF34D399);
   static const greenDark = Color(0xFF059669);
   static const blue = Color(0xFF38BDF8);
   static const blueDark = Color(0xFF0284C7);
-  static const pink = Color(0xFFF472B6);
-  static const pinkDark = Color(0xFFDB2777);
+  static const teal = Color(0xFF2DD4BF);
+  static const tealDark = Color(0xFF0D9488);
   static const purple = Color(0xFFA78BFA);
   static const purpleDark = Color(0xFF7C3AED);
   static const ink = Color(0xFF3B2A6B);
@@ -133,7 +133,7 @@ class _MenuButtonState extends State<MenuButton> {
 
   @override
   Widget build(BuildContext context) {
-    final height = widget.primary ? 80.0 : 60.0;
+    final height = widget.primary ? 76.0 : 64.0;
     final button = AnimatedScale(
       scale: _pressed ? 0.95 : 1,
       duration: const Duration(milliseconds: 90),
@@ -205,7 +205,7 @@ class _MenuButtonState extends State<MenuButton> {
     return PopIn(
       index: widget.index,
       child: SizedBox(
-        width: 300,
+        width: 290,
         height: height,
         child: _BadgeDot(
           show: widget.badge,

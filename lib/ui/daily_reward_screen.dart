@@ -18,7 +18,7 @@ class DailyRewardScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('\u{1F381} Daily reward'),
-        backgroundColor: KidColors.teal,
+        backgroundColor: KidColors.blueDark,
         foregroundColor: Colors.white,
       ),
       body: KidBackground(
@@ -61,34 +61,15 @@ class DailyRewardScreen extends StatelessWidget {
                                 SizedBox(
                                   width: _cardWidth(context),
                                   height: _cardWidth(context) / 0.8,
-                                  child: Card(
+                                  child: _DayCard(
                                     key: TestIds.dailyDay(i),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18),
-                                    ),
-                                    color: i < claimedThrough
-                                        ? const Color(0xFFBBF7D0)
-                                        : (i == today && available
-                                              ? KidColors.sun
-                                              : Colors.white),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text('Day ${i + 1}'),
-                                        Icon(
-                                          DailyRewardEngine.rewards[i].coins > 0
-                                              ? Icons.monetization_on
-                                              : Icons.bolt,
-                                          color: KidColors.orange,
-                                        ),
-                                        Text(
-                                          DailyRewardEngine.rewards[i].label,
-                                        ),
-                                        if (i < claimedThrough)
-                                          const Icon(Icons.check, size: 16),
-                                      ],
-                                    ),
+                                    day: i + 1,
+                                    icon: DailyRewardEngine.rewards[i].coins > 0
+                                        ? Icons.monetization_on
+                                        : Icons.bolt,
+                                    label: DailyRewardEngine.rewards[i].label,
+                                    done: i < claimedThrough,
+                                    today: i == today && available,
                                   ),
                                 ),
                             ],
@@ -144,6 +125,88 @@ class DailyRewardScreen extends StatelessWidget {
             },
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _DayCard extends StatelessWidget {
+  const _DayCard({
+    super.key,
+    required this.day,
+    required this.icon,
+    required this.label,
+    required this.done,
+    required this.today,
+  });
+  final int day;
+  final IconData icon;
+  final String label;
+  final bool done;
+  final bool today;
+
+  @override
+  Widget build(BuildContext context) {
+    final top = done
+        ? KidColors.green
+        : (today ? KidColors.sun : KidColors.blue);
+    return Container(
+      decoration: BoxDecoration(
+        color: done ? const Color(0xFFD9F9E6) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: top, width: today ? 4 : 3),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            color: top,
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Text(
+              'Day $day',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                color: today ? KidColors.ink : Colors.white,
+              ),
+            ),
+          ),
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: KidColors.sun, size: 28),
+                  Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: KidColors.ink,
+                    ),
+                  ),
+                  if (done)
+                    const Icon(
+                      Icons.check_circle,
+                      size: 18,
+                      color: KidColors.green,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

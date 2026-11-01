@@ -15,6 +15,7 @@ import '../game/flame/blockfall_layout.dart';
 import '../game/rules/blockfall_game.dart';
 import '../game/rules/events.dart';
 import '../game/rules/powerups.dart';
+import '../game/rules/well.dart';
 import 'hud_widgets.dart';
 import 'test_ids.dart';
 
@@ -44,6 +45,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool _paused = false;
   int _gameIndex = 0;
   final AudioService _audio = AudioService();
+  bool _warned = false;
 
   @override
   void initState() {
@@ -77,6 +79,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       rules: rules,
       showGhost: _s!.profile.data.ghostOn,
     )..onEvent = _onEvent;
+    _audio.enabled = _s!.profile.data.soundOn;
+    _audio.voice('go');
   }
 
   BlockfallGame _newRules() {
@@ -128,6 +132,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     switch (e) {
       case PieceLocked():
         if (vib) HapticFeedback.lightImpact();
+        _warnIfStackHigh();
       case LinesCleared():
         if (vib) HapticFeedback.mediumImpact();
         _praiseClear(e);
@@ -136,7 +141,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case PowerUpUsed():
         _persistStock();
       case GameOver():
-        _audio.voice('game_over', variants: 2);
+        if (_flame!.rules.score > s.profile.data.bestScore) {
+          _audio.voice('you_did_it');
+        } else {
+          _audio.voice('game_over', variants: 2);
+        }
         _persistStock();
         _showGameOver();
       default:
@@ -167,6 +176,21 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       line = null;
     }
     if (line != null) _audio.voice(line);
+  }
+
+  /// "Careful" once the stack reaches the top few visible rows; re-armed when it drops.
+  void _warnIfStackHigh() {
+    final well = _flame?.rules.well;
+    if (well == null) return;
+    const limit = Well.hiddenRows + 4;
+    var high = false;
+    for (var r = Well.hiddenRows; r < limit && !high; r++) {
+      for (var c = 0; c < Well.cols && !high; c++) {
+        high = well.isFilled(r, c);
+      }
+    }
+    if (high && !_warned) _audio.voice('careful');
+    _warned = high;
   }
 
   void _persistStock() {
@@ -298,6 +322,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _recorded = false;
         setState(() => _paused = false);
         flame.reset(_newRules());
+        _warned = false;
+        _audio.voice('go');
         _syncPause();
       default:
         await _finishGame();

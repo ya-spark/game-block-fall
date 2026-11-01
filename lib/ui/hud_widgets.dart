@@ -134,36 +134,47 @@ class StatPanel extends StatelessWidget {
     required this.label,
     required this.value,
     required this.width,
+    this.height,
   });
   final String label;
   final int value;
   final double width;
+  final double? height;
 
   @override
   Widget build(BuildContext context) => Container(
     width: width,
-    padding: const EdgeInsets.symmetric(vertical: 6),
+    height: height,
+    alignment: Alignment.center,
+    padding: const EdgeInsets.symmetric(vertical: 4),
     decoration: BoxDecoration(
       color: const Color(0xCC08141B),
       borderRadius: BorderRadius.circular(12),
       border: Border.all(color: const Color(0x662EC4B6)),
     ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 10, letterSpacing: 2, color: kMuted),
-        ),
-        Text(
-          '$value',
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
+    child: FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              letterSpacing: 2,
+              color: kMuted,
+            ),
           ),
-        ),
-      ],
+          Text(
+            '$value',
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }

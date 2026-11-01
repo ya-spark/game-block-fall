@@ -2,14 +2,18 @@ import 'dart:math';
 
 /// Screen geometry in plain doubles so it can be unit tested without Flutter.
 ///
-/// [BlockfallLayout] sizes the middle band of the game screen (HOLD / well / NEXT);
-/// [WellGeometry] maps well cells to pixels inside the Flame canvas.
+/// [BlockfallLayout] sizes the middle band of the game screen (a strip of HOLD / LEVEL / GOAL /
+/// NEXT boxes above the well); [WellGeometry] maps well cells to pixels inside the Flame canvas.
 class BlockfallLayout {
   BlockfallLayout(this.width, this.height) {
-    sideWidth = (width * 0.18).clamp(52.0, 92.0);
     gap = max(4.0, width * 0.02);
-    final availW = width - 2 * (sideWidth + gap);
-    cell = max(4.0, min((availW - 2 * pad) / cols, (height - 2 * pad) / rows));
+    boxWidth = (width - gap * (hudBoxes + 1)) / hudBoxes;
+    hudHeight = (boxWidth * 1.05).clamp(44.0, 72.0);
+    final wellAreaH = height - hudHeight - gap;
+    cell = max(
+      4.0,
+      min((width - 2 * pad) / cols, (wellAreaH - 2 * pad) / rows),
+    );
   }
 
   static const int cols = 10;
@@ -21,18 +25,16 @@ class BlockfallLayout {
   final double width;
   final double height;
 
-  late final double sideWidth;
+  /// HOLD, LEVEL, GOAL and three NEXT boxes share the strip above the well.
+  static const int hudBoxes = 6;
+
+  late final double boxWidth;
+  late final double hudHeight;
   late final double gap;
   late final double cell;
 
   double get wellWidth => cell * cols + 2 * pad;
   double get wellHeight => cell * rows + 2 * pad;
-
-  /// HOLD box and the first NEXT box.
-  double get bigBoxHeight => sideWidth * 0.9;
-
-  /// NEXT boxes 2 and 3.
-  double get smallBoxHeight => sideWidth * 0.62;
 
   /// Cell size used for the miniature pieces inside a box of the given width.
   double miniCell(double boxWidth) => boxWidth / 5.2;

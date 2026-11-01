@@ -503,85 +503,72 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         label: 'Hold',
         child: HudBox(
           label: 'HOLD',
-          width: l.sideWidth,
-          height: l.bigBoxHeight,
+          width: l.boxWidth,
+          height: l.hudHeight,
           child: hold == null
               ? const SizedBox.shrink()
               : PiecePreview(
                   type: hold.type,
                   prismCell: hold.prismCell,
-                  cell: l.miniCell(l.sideWidth),
+                  cell: l.miniCell(l.boxWidth),
                   dim: !rules.canHold,
                 ),
         ),
       ),
     );
     final next = rules.next;
-    return Center(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: l.sideWidth,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 8,
-              children: [
-                holdBox,
-                ValueNode(
-                  key: TestIds.gameLevel,
-                  value: '${rules.level}',
-                  label: 'Level',
-                  child: StatPanel(
-                    label: 'LEVEL',
-                    value: rules.level,
-                    width: l.sideWidth,
-                  ),
-                ),
-                ValueNode(
-                  key: TestIds.gameGoal,
-                  value: '${rules.goal}',
-                  label: 'Goal',
-                  child: StatPanel(
-                    label: 'GOAL',
-                    value: rules.goal,
-                    width: l.sideWidth,
-                  ),
-                ),
-              ],
+    final hud = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      spacing: l.gap,
+      children: [
+        holdBox,
+        ValueNode(
+          key: TestIds.gameLevel,
+          value: '${rules.level}',
+          label: 'Level',
+          child: StatPanel(
+            label: 'LEVEL',
+            value: rules.level,
+            width: l.boxWidth,
+            height: l.hudHeight,
+          ),
+        ),
+        ValueNode(
+          key: TestIds.gameGoal,
+          value: '${rules.goal}',
+          label: 'Goal',
+          child: StatPanel(
+            label: 'GOAL',
+            value: rules.goal,
+            width: l.boxWidth,
+            height: l.hudHeight,
+          ),
+        ),
+        for (var i = 0; i < next.length; i++)
+          ValueNode(
+            key: TestIds.gameNext(i),
+            value: next[i].type.displayName,
+            label: 'Next ${i + 1}',
+            child: HudBox(
+              label: i == 0 ? 'NEXT' : '',
+              width: l.boxWidth,
+              height: l.hudHeight,
+              child: PiecePreview(
+                type: next[i].type,
+                prismCell: next[i].prismCell,
+                cell: l.miniCell(l.boxWidth) * (i == 0 ? 1 : 0.8),
+              ),
             ),
           ),
-          SizedBox(width: l.gap),
-          well,
-          SizedBox(width: l.gap),
-          SizedBox(
-            width: l.sideWidth,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 8,
-              children: [
-                for (var i = 0; i < next.length; i++)
-                  ValueNode(
-                    key: TestIds.gameNext(i),
-                    value: next[i].type.displayName,
-                    label: 'Next ${i + 1}',
-                    child: HudBox(
-                      label: i == 0 ? 'NEXT' : '',
-                      width: l.sideWidth,
-                      height: i == 0 ? l.bigBoxHeight : l.smallBoxHeight,
-                      child: PiecePreview(
-                        type: next[i].type,
-                        prismCell: next[i].prismCell,
-                        cell: l.miniCell(l.sideWidth) * (i == 0 ? 1 : 0.8),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      ],
+    );
+    return Column(
+      children: [
+        SizedBox(height: l.gap),
+        hud,
+        SizedBox(height: l.gap),
+        Expanded(child: Center(child: well)),
+      ],
     );
   }
 

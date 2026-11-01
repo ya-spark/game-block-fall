@@ -19,19 +19,19 @@ void main() {
       for (final (w, h) in [(400.0, 560.0), (360.0, 330.0), (800.0, 900.0)]) {
         final l = BlockfallLayout(w, h);
         expect(l.wellHeight, lessThanOrEqualTo(h + 1e-9));
-        expect(
-          l.wellWidth + 2 * (l.sideWidth + l.gap),
-          lessThanOrEqualTo(w + 1e-9),
-        );
+        expect(l.wellWidth, lessThanOrEqualTo(w + 1e-9));
+        expect(l.hudHeight + l.gap + l.wellHeight, lessThanOrEqualTo(h + 1e-9));
         expect(l.wellHeight / l.wellWidth, closeTo(2, 0.35));
       }
     });
 
-    test('side boxes stay within sensible bounds', () {
-      expect(BlockfallLayout(200, 500).sideWidth, 52);
-      expect(BlockfallLayout(900, 500).sideWidth, 92);
+    test('HUD strip boxes fit across the width', () {
       final l = BlockfallLayout(400, 560);
-      expect(l.bigBoxHeight, greaterThan(l.smallBoxHeight));
+      expect(
+        l.boxWidth * BlockfallLayout.hudBoxes +
+            l.gap * (BlockfallLayout.hudBoxes + 1),
+        closeTo(400, 1e-9),
+      );
     });
 
     test('columnsFor counts whole cell widths', () {

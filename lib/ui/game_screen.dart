@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../core/ads/ad_service.dart';
+import '../core/audio/audio_service.dart';
 import '../core/profile/profile_store.dart';
 import '../core/save/save_data.dart';
 import '../core/services.dart';
@@ -42,6 +43,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool _sheetOpen = false;
   bool _paused = false;
   int _gameIndex = 0;
+  final AudioService _audio = AudioService();
 
   @override
   void initState() {
@@ -64,6 +66,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _persistStock();
     _flame?.onEvent = null;
+    _audio.dispose();
     _flame?.revision.dispose();
     super.dispose();
   }
@@ -121,19 +124,49 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final s = _s;
     if (s == null) return;
     final vib = s.profile.data.vibrationOn;
+    _audio.enabled = s.profile.data.soundOn;
     switch (e) {
       case PieceLocked():
         if (vib) HapticFeedback.lightImpact();
       case LinesCleared():
         if (vib) HapticFeedback.mediumImpact();
+        _praiseClear(e);
+      case LevelUp():
+        _audio.voice('awesome');
       case PowerUpUsed():
         _persistStock();
       case GameOver():
+        _audio.voice('game_over', variants: 2);
         _persistStock();
         _showGameOver();
       default:
         break;
     }
+  }
+
+  /// Narrator line for a clear: the rarest achievement in it wins.
+  void _praiseClear(LinesCleared e) {
+    final String? line;
+    if (e.perfectClear) {
+      line = 'unbelievable';
+    } else if (e.count >= 4) {
+      line = 'incredible';
+    } else if (e.backToBack) {
+      line = 'fantastic';
+    } else if (e.combo >= 5) {
+      line = 'unstoppable';
+    } else if (e.combo >= 3) {
+      line = 'combo';
+    } else if (e.count == 3) {
+      line = 'excellent';
+    } else if (e.count == 2) {
+      line = 'great';
+    } else if (e.combo >= 2) {
+      line = 'nice';
+    } else {
+      line = null;
+    }
+    if (line != null) _audio.voice(line);
   }
 
   void _persistStock() {

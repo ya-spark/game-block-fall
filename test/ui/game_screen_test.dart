@@ -313,7 +313,10 @@ void main() {
       final row = g.currentPiece!.row;
       await settle(tester, 30);
       expect(g.currentPiece!.row, row, reason: 'frozen while paused');
-      await tester.tap(find.byKey(TestIds.gameWell), warnIfMissed: false);
+      // Near the top edge: the centre of the well sits under the overlay's Home button.
+      await tester.tapAt(
+        tester.getTopLeft(find.byKey(TestIds.gameWell)) + const Offset(20, 20),
+      );
       expect(g.currentPiece!.rotation, 0);
       await tapKey(tester, TestIds.gamePauseResume);
       expect(find.byKey(TestIds.gamePauseResume), findsNothing);

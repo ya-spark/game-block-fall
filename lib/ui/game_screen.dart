@@ -451,18 +451,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         ),
         ScorePill(score: rules.score),
         const SizedBox(height: 6),
-        Expanded(
-          child: LayoutBuilder(
-            builder: (context, c) =>
-                _buildMiddle(BlockfallLayout(c.maxWidth, c.maxHeight), flame),
-          ),
-        ),
-        const SizedBox(height: 4),
         _StreakBar(
           streak: s.profile.displayStreak,
           showStreak: s.config.retention.streaks,
           combo: rules.combo,
           prismCoins: rules.coinsFromPrisms,
+        ),
+        const SizedBox(height: 6),
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, c) =>
+                _buildMiddle(BlockfallLayout(c.maxWidth, c.maxHeight), flame),
+          ),
         ),
         if (buttons) _buildControls(flame),
         const SizedBox(height: 6),

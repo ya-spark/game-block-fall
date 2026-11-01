@@ -112,7 +112,8 @@ void main() {
     await tester.tap(find.byKey(TestIds.settingsSound));
     await tester.pumpAndSettle();
     expect(s.profile.data.soundOn, isFalse);
-    expect(find.byKey(TestIds.settingsPlayGames), findsOneWidget);
+    // Play Games is off in app.config.yaml, so its row is hidden.
+    expect(find.byKey(TestIds.settingsPlayGames), findsNothing);
   });
 
   testWidgets('game: screen opens from Play and goes back', (tester) async {

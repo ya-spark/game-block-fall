@@ -140,7 +140,11 @@ void main() {
   ) async {
     final ads = PolicyAdService(pacing, () => now)..loads = false;
     final s = await buildFakeServices(ads: ads);
-    expect(s.identity.isStub, isTrue, reason: 'not signed in to Play Games');
+    expect(
+      s.identity.isSignedIn,
+      isFalse,
+      reason: 'not signed in to Play Games',
+    );
     await s.profile.setPowerUps({'sweep': 0, 'slow': 0, 'bomb': 0});
     final g = mk(stock: {for (final t in PowerUpType.values) t: 0});
     await openGame(tester, g, services: s, buttons: true);

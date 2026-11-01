@@ -142,7 +142,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _persistStock();
       case GameOver():
         if (_flame!.rules.score > s.profile.data.bestScore) {
-          _audio.voice('you_did_it');
+          _audio.voice('better_than_the_best');
         } else {
           _audio.voice('game_over', variants: 2);
         }

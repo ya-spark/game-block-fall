@@ -493,7 +493,15 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 icon: const Icon(Icons.chevron_left),
                 onPressed: _leave,
               ),
-              const Spacer(),
+              // Score shares the header row, so the well gets the freed height.
+              Expanded(
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: ScorePill(score: rules.score),
+                  ),
+                ),
+              ),
               ListenableBuilder(
                 listenable: s.profile,
                 builder: (context, _) =>
@@ -508,15 +516,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             ],
           ),
         ),
-        ScorePill(score: rules.score),
-        const SizedBox(height: 6),
         _StreakBar(
           streak: s.profile.displayStreak,
           showStreak: s.config.retention.streaks,
           combo: rules.combo,
           prismCoins: rules.coinsFromPrisms,
         ),
-        const SizedBox(height: 6),
         Expanded(
           child: LayoutBuilder(
             builder: (context, c) =>
@@ -841,12 +846,8 @@ class _StreakBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0x0FFFFFFF),
-        borderRadius: BorderRadius.circular(20),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: DefaultTextStyle(
         style: const TextStyle(color: Color(0xFFCFE9EC), fontSize: 13),
         child: Row(

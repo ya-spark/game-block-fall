@@ -190,8 +190,8 @@ class ScorePill extends StatelessWidget {
     value: '$score',
     label: 'Score',
     child: Container(
-      constraints: const BoxConstraints(minWidth: 150),
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 2),
+      constraints: const BoxConstraints(minWidth: 110),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: kTeal, width: 1.5),
@@ -209,7 +209,7 @@ class ScorePill extends StatelessWidget {
             '$score',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 36,
+              fontSize: 28,
               height: 1.1,
               fontWeight: FontWeight.w800,
               letterSpacing: 1,
@@ -217,7 +217,12 @@ class ScorePill extends StatelessWidget {
           ),
           const Text(
             'SCORE',
-            style: TextStyle(fontSize: 10, letterSpacing: 3, color: kMuted),
+            style: TextStyle(
+              fontSize: 9,
+              height: 1.1,
+              letterSpacing: 3,
+              color: kMuted,
+            ),
           ),
         ],
       ),

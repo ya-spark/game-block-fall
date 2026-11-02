@@ -16,6 +16,7 @@ import '../game/rules/blockfall_game.dart';
 import '../game/rules/events.dart';
 import '../game/rules/powerups.dart';
 import '../game/rules/well.dart';
+import 'game_over_panel.dart';
 import 'hud_widgets.dart';
 import 'test_ids.dart';
 
@@ -254,69 +255,46 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.transparent,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => GameOverPanel(
         key: TestIds.gameOverDialog,
-        // Pinned to the top, with no dimming, so the play field stays visible; a bright
-        // themed card instead of a dull dark panel.
-        alignment: Alignment.topCenter,
-        insetPadding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-        backgroundColor: Theme.of(ctx).colorScheme.primaryContainer,
-        surfaceTintColor: Colors.transparent,
-        elevation: 12,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: Theme.of(ctx).colorScheme.primary, width: 2),
-        ),
-        titleTextStyle: Theme.of(ctx).textTheme.titleLarge?.copyWith(
-          color: Theme.of(ctx).colorScheme.onPrimaryContainer,
-          fontWeight: FontWeight.w800,
-        ),
-        contentTextStyle: Theme.of(ctx).textTheme.bodyMedium
-            ?.copyWith(color: Theme.of(ctx).colorScheme.onPrimaryContainer),
-        titlePadding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-        contentPadding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-        actionsPadding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-        title: const Text('Game over'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ValueNode(
-              key: TestIds.gameOverScore,
-              value: '${game.score}',
-              child: Text(
-                'Score ${game.score}',
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
+        title: 'Game over',
+        details: [
+          ValueNode(
+            key: TestIds.gameOverScore,
+            value: '${game.score}',
+            child: Text(
+              'Score ${game.score}',
+              style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
             ),
-            const SizedBox(height: 6),
-            Text('Best $best'),
-            if (game.score >= best && game.score > 0)
-              const Text(
-                'New best!',
-                style: TextStyle(color: kGold, fontWeight: FontWeight.bold),
-              ),
-          ],
-        ),
-        actions: [
+          ),
+          Text('Best $best'),
+          if (game.score >= best && game.score > 0)
+            const Text('New best!', style: TextStyle(color: kGold)),
+        ],
+        buttons: [
           if (game.canRevive)
-            FilledButton.icon(
+            GameOverButton(
               key: TestIds.gameOverRevive,
-              icon: const Icon(Icons.smart_display),
-              label: Text('Revive (watch ad) - ${game.revivesRemaining} left'),
+              kind: GameOverButtonKind.primary,
+              icon: Icons.smart_display,
+              label: 'Revive · ${game.revivesRemaining} left',
               onPressed: () => Navigator.pop(ctx, 'revive'),
             ),
-          TextButton(
+          GameOverButton(
             key: TestIds.gameOverRetry,
+            kind: game.canRevive
+                ? GameOverButtonKind.secondary
+                : GameOverButtonKind.primary,
+            icon: Icons.replay,
+            label: 'Play again',
             onPressed: () => Navigator.pop(ctx, 'retry'),
-            child: const Text('Play again'),
           ),
-          TextButton(
+          GameOverButton(
             key: TestIds.gameOverHome,
+            kind: GameOverButtonKind.ghost,
+            icon: Icons.home,
+            label: 'Home',
             onPressed: () => Navigator.pop(ctx, 'home'),
-            child: const Text('Home'),
           ),
         ],
       ),

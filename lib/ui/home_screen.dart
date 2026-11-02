@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/services.dart';
-import 'challenges_screen.dart';
-import 'daily_reward_screen.dart';
-import 'game_screen.dart';
-import 'settings_screen.dart';
-import 'shop_screen.dart';
+import 'routes.dart';
 import 'test_ids.dart';
 import 'widgets.dart';
 
@@ -36,9 +32,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  void _open(Widget screen) =>
-      Navigator.of(context)
-          .push(MaterialPageRoute<void>(builder: (_) => screen));
+  void _open(String route) => Navigator.of(context).pushNamed(route);
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         primary: true,
                         top: KidColors.green,
                         bottom: KidColors.greenDark,
-                        onPressed: () => _open(const GameScreen()),
+                        onPressed: () => _open(AppRoutes.play),
                       ),
                       if (s.config.retention.dailyReward)
                         MenuButton(
@@ -137,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           bottom: KidColors.tealDark,
                           index: 1,
                           badge: profile.dailyRewardAvailable,
-                          onPressed: () => _open(const DailyRewardScreen()),
+                          onPressed: () => _open(AppRoutes.dailyReward),
                         ),
                       if (s.config.retention.dailyChallenges ||
                           s.config.retention.achievements)
@@ -150,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           bottom: KidColors.orange,
                           index: 2,
                           badge: claimable,
-                          onPressed: () => _open(const ChallengesScreen()),
+                          onPressed: () => _open(AppRoutes.challenges),
                         ),
                       MenuButton(
                         key: TestIds.homeShop,
@@ -160,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         top: KidColors.purple,
                         bottom: KidColors.purpleDark,
                         index: 3,
-                        onPressed: () => _open(const ShopScreen()),
+                        onPressed: () => _open(AppRoutes.shop),
                       ),
                       MenuButton(
                         key: TestIds.homeSettings,
@@ -168,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         icon: Icons.settings,
                         emoji: '\u{2699}\u{FE0F}',
                         index: 4,
-                        onPressed: () => _open(const SettingsScreen()),
+                        onPressed: () => _open(AppRoutes.settings),
                       ),
                     ],
                   ),

@@ -33,6 +33,7 @@ class SaveData {
     this.powerUps = kInitialPowerUps,
     this.controls,
     this.ghostOn = true,
+    this.themeIndex = 0,
     this.masterVolume = 1.0,
     this.ambience = 'before_sunrise',
     this.voiceOn = true,
@@ -73,6 +74,9 @@ class SaveData {
   /// Show the landing ghost.
   final bool ghostOn;
 
+  /// Position in the theme rotation (`ThemeRotation`); a new game continues from it.
+  final int themeIndex;
+
   /// Master volume 0..1, ambience track id ('off', 'before_sunrise', ...), voice switch.
   final double masterVolume;
   final String ambience;
@@ -101,6 +105,7 @@ class SaveData {
     Map<String, int>? powerUps,
     ControlScheme? controls,
     bool? ghostOn,
+    int? themeIndex,
     double? masterVolume,
     String? ambience,
     bool? voiceOn,
@@ -123,6 +128,7 @@ class SaveData {
     powerUps: powerUps ?? this.powerUps,
     controls: controls ?? this.controls,
     ghostOn: ghostOn ?? this.ghostOn,
+    themeIndex: themeIndex ?? this.themeIndex,
     masterVolume: masterVolume ?? this.masterVolume,
     ambience: ambience ?? this.ambience,
     voiceOn: voiceOn ?? this.voiceOn,
@@ -148,6 +154,7 @@ class SaveData {
     'powerUps': powerUps,
     'controls': controls?.name,
     'ghostOn': ghostOn,
+    'themeIndex': themeIndex,
     'masterVolume': masterVolume,
     'ambience': ambience,
     'voiceOn': voiceOn,
@@ -177,6 +184,7 @@ class SaveData {
     powerUps: _powerUps(j['powerUps']),
     controls: ControlScheme.values.asNameMap()[j['controls']],
     ghostOn: j['ghostOn'] as bool? ?? true,
+    themeIndex: ((j['themeIndex'] as num?)?.toInt() ?? 0).abs(),
     masterVolume: ((j['masterVolume'] as num?)?.toDouble() ?? 1.0).clamp(
       0.0,
       1.0,

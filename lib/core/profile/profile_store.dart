@@ -252,6 +252,11 @@ class ProfileStore extends ChangeNotifier {
   ControlScheme get controlScheme => _data.controls ?? defaultControls;
   Future<void> setControls(ControlScheme v) =>
       _commit(_data.copyWith(controls: v));
+  Future<void> setThemeIndex(int v) {
+    if (v == _data.themeIndex) return Future.value();
+    return _commit(_data.copyWith(themeIndex: v));
+  }
+
   Future<void> setGhost(bool v) => _commit(_data.copyWith(ghostOn: v));
   Future<void> setMasterVolume(double v) =>
       _commit(_data.copyWith(masterVolume: v.clamp(0.0, 1.0)));

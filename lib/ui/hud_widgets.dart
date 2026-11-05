@@ -6,6 +6,8 @@ import '../game/flame/blockfall_flame_game.dart' show previewCells;
 import '../game/flame/gem_painter.dart';
 import '../game/rules/piece_type.dart';
 import '../game/rules/powerups.dart';
+import '../game/themes/block_theme.dart';
+import 'theme_fade.dart';
 import 'test_ids.dart';
 
 const Color kTeal = Color(0xFF2EC4B6);
@@ -40,8 +42,10 @@ class PiecePreview extends StatelessWidget {
     required this.type,
     this.prismCell,
     required this.cell,
+    required this.theme,
     this.dim = false,
   });
+  final BlockTheme theme;
   final PieceType type;
   final int? prismCell;
   final double cell;
@@ -50,31 +54,47 @@ class PiecePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = previewCells(type, prismCell);
+    // The previews cross-fade with the well when the theme changes.
     return Opacity(
       opacity: dim ? 0.35 : 1,
-      child: CustomPaint(
-        size: Size(p.cols * cell, p.rows * cell),
-        painter: _PreviewPainter(type, prismCell, cell),
+      child: ThemeFade(
+        theme: theme,
+        builder: (context, from, to, t) => CustomPaint(
+          size: Size(p.cols * cell, p.rows * cell),
+          painter: _PreviewPainter(type, prismCell, cell, from, to, t),
+        ),
       ),
     );
   }
 }
 
+final ThemeTileCache _previewTiles = ThemeTileCache();
+
 class _PreviewPainter extends CustomPainter {
-  _PreviewPainter(this.type, this.prismCell, this.cell);
+  _PreviewPainter(
+    this.type,
+    this.prismCell,
+    this.cell,
+    this.from,
+    this.to,
+    this.t,
+  );
   final PieceType type;
   final int? prismCell;
   final double cell;
+  final BlockTheme from;
+  final BlockTheme to;
+  final double t;
 
-  @override
-  void paint(Canvas canvas, Size size) {
+  void _cells(Canvas canvas, BlockTheme theme) {
     final p = previewCells(type, prismCell);
     for (var i = 0; i < p.cells.length; i++) {
       final (c, r) = p.cells[i];
-      GemPainter.drawGem(
+      _previewTiles.draw(
         canvas,
-        Rect.fromLTWH(c * cell, r * cell, cell, cell),
+        theme,
         type.colorId,
+        Rect.fromLTWH(c * cell, r * cell, cell, cell),
         prism: prismCell == i,
         pulse: 0.25,
       );
@@ -82,8 +102,25 @@ class _PreviewPainter extends CustomPainter {
   }
 
   @override
+  void paint(Canvas canvas, Size size) {
+    if (t >= 1) {
+      _cells(canvas, to);
+      return;
+    }
+    _cells(canvas, from);
+    canvas.saveLayer(null, Paint()..color = Color.fromRGBO(255, 255, 255, t));
+    _cells(canvas, to);
+    canvas.restore();
+  }
+
+  @override
   bool shouldRepaint(_PreviewPainter old) =>
-      old.type != type || old.prismCell != prismCell || old.cell != cell;
+      old.type != type ||
+      old.prismCell != prismCell ||
+      old.cell != cell ||
+      old.from.id != from.id ||
+      old.to.id != to.id ||
+      old.t != t;
 }
 
 /// Rounded dark panel with a thin teal outline and a small caption.

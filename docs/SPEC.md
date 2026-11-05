@@ -115,7 +115,7 @@ Inventory: a fresh install starts with 1 of each type; stock persists in the sav
 Reference layout for the game screen (portrait): score pill on top, well in the middle, HOLD box on the left with LEVEL and GOAL under it, NEXT queue on the right, three power-up buttons along the bottom.
 
 - **Home**: Play, Daily reward, Challenges, Shop, Settings, coins, best score, streak, banner. (Keep existing `home.*` IDs.)
-- **Game**: IDs `game.widget`, `game.well`, `game.score`, `game.best`, `game.level`, `game.goal`, `game.hold` (tap to hold), `game.holdPiece`, `game.next.0`, `game.next.1`, `game.next.2`, `game.combo`, `game.pause`, `game.back`, `game.powerup.sweep`, `game.powerup.slow`, `game.powerup.bomb`, and for each `game.powerup.<name>.count`; refill sheet `game.refill.coins`, `game.refill.ad`. Game over: `game.over.dialog`, `game.over.revive`, `game.over.retry`, `game.over.home`, `game.over.score`. Pause dialog: `game.pause.resume`, `game.pause.quit`.
+- **Game**: IDs `game.widget`, `game.well`, `game.score`, `game.best`, `game.level`, `game.theme` (invisible, value = theme id), `game.goal`, `game.hold` (tap to hold), `game.holdPiece`, `game.next.0`, `game.next.1`, `game.next.2`, `game.combo`, `game.pause`, `game.back`, `game.powerup.sweep`, `game.powerup.slow`, `game.powerup.bomb`, and for each `game.powerup.<name>.count`; refill sheet `game.refill.coins`, `game.refill.ad`. Game over: `game.over.dialog`, `game.over.revive`, `game.over.retry`, `game.over.home`, `game.over.score`. Pause dialog: `game.pause.resume`, `game.pause.quit`.
 - **On-screen controls** (control scheme "Buttons", an accessibility option and the bot's driver): `game.ctl.left`, `game.ctl.right`, `game.ctl.rotate`, `game.ctl.softDrop`, `game.ctl.hardDrop`. Present only when Settings controls = Buttons; Hold and power-ups are always on screen.
 - **Daily reward**, **Challenges/Achievements**, **Shop**, **Settings**: existing IDs kept. Settings adds `settings.controls` (Touch/Buttons), `settings.ghost`.
 
@@ -131,6 +131,20 @@ Reference layout for the game screen (portrait): score pill on top, well in the 
 
 ## 8. Art and audio
 - Style: reuse block puzzle identity: midnight-teal gradient background, glossy rounded gem blocks (7 hues), glowing score pill; prism cell has a bright white-cyan sparkle core. **No particle effects in v1**; line clears use a short flash/fade of the row (no particles).
+- **Themes** (background + block skin + 7 colours + well and grid colours, all drawn in code, no assets). Same six themes, ids and order as game-block-puzzle; the first is the look described above:
+
+  | # | id | Name | Background | Block skin |
+  |---|---|---|---|---|
+  | 0 | `gems` | Gems | midnight-teal to blue gradient | glossy faceted gem (the original look) |
+  | 1 | `cakes` | Cakes | brown wafer | biscuit with icing and sprinkles |
+  | 2 | `wood` | Wood | green gradient | wooden tile with grain |
+  | 3 | `candy` | Candy | pink and sky gradient | glossy gumdrop |
+  | 4 | `ocean` | Ocean | deep blue with bubbles | pearly shell |
+  | 5 | `space` | Space | violet night with stars | ringed planet |
+
+  Each theme has 7 colours, one per piece type (colour id 1..7 in the well): a piece type keeps one colour inside a theme and has a different colour in each theme. Every skin carries a small mark per colour (dot, ring, bar, ...) so colours stay distinguishable without hue, and the prism cell keeps the bright sparkle core in every skin. The well still stores only a colour id and a prism flag per cell; `lib/game/rules/` only gains the pure rotation rule `ThemeRotation`.
+  **Change rule.** No picker, no setting. The theme changes on every **level-up**, in table order, wrapping from `space` to `gems`: theme index = (start index + level - 1) mod 6. The index is saved in the profile (`themeIndex`, written at each level-up) and a new game starts from it; a new install starts at `gems`.
+  **Cross-fade.** On a change the new theme fades in over the old one in 1.5 s: background, well, locked cells, falling piece, ghost, Hold and Next previews. No flashing; it never blocks input or delays a lock. Cell pictures are cached per (theme, colour). The current theme id is the Semantics value of the invisible `game.theme`.
 - Assets: game blocks drawn in code (Canvas/Flame shapes) where possible; app icon, feature graphic and screenshots by asset-agent; sounds: move tick, rotate, lock, line clear (1 to 4 rows rising), level up, game over, button. All sounds are CC0/own-made; every asset is listed in `assets/LICENSES.md` with source and license.
 - Haptics: light tick on lock, medium on clear (toggle in Settings).
 - **Voice** (`assets/voice/`, narrator lines; v1 has no effect sounds). One voice player; a clip that is playing is never stopped by a new line (`lib/core/audio/voice_arbiter.dart`). Priorities: **High** `game_over`, `better_than_the_best`; **Normal** `awesome`, `combo`, `excellent`, `fantastic`, `great`, `incredible`, `nice`, `unbelievable`, `unstoppable`, `well_done`, `you_did_it`; **Low** `get_ready`, `go`, `careful`. A high line that arrives while a clip plays waits and plays right after it (the newest waiting high line wins); a normal or low line that arrives while a clip plays is played only if the current clip ends within 1 s, otherwise it is dropped (a waiting high line beats it).

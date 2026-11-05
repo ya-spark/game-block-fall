@@ -13,6 +13,8 @@ import '../rules/piece_type.dart';
 import '../rules/powerups.dart';
 import '../rules/well.dart';
 import 'blockfall_layout.dart';
+import '../rules/theme_rotation.dart';
+import '../themes/block_theme.dart';
 import 'gem_painter.dart';
 import 'touch_controls.dart';
 
@@ -21,11 +23,33 @@ import 'touch_controls.dart';
 /// [BlockfallGame]; input arrives through the public control methods (also used by the
 /// on-screen buttons).
 class BlockfallFlameGame extends FlameGame {
-  BlockfallFlameGame({required this.rules, this.showGhost = true});
+  BlockfallFlameGame({
+    required this.rules,
+    this.showGhost = true,
+    this.themeStart = 0,
+  });
 
   /// The running rules engine. Replace through [reset].
   BlockfallGame rules;
   bool showGhost;
+
+  /// Rotation index (see [ThemeRotation]) at which the running game started.
+  int themeStart;
+
+  /// Cached cell pictures per (theme, colour).
+  final ThemeTileCache tiles = ThemeTileCache();
+
+  /// Rotation index now: the theme changes on every level-up, wrapping around.
+  int get themeIndex => ThemeRotation.indexFor(themeStart, rules.level);
+
+  BlockTheme get theme => BlockTheme.byIndex(themeIndex);
+
+  /// Theme cross-fade: [_fromTheme] fades into [_toTheme]; [_fade] runs 0..1 (1 = settled).
+  BlockTheme? _fromTheme;
+  BlockTheme? _toTheme;
+  double _fade = 1;
+  BlockTheme get _from => _fromTheme ?? theme;
+  BlockTheme get _to => _toTheme ?? theme;
 
   /// Called for every rules event (haptics, game over, stats).
   void Function(GameEvent event)? onEvent;
@@ -65,8 +89,12 @@ class BlockfallFlameGame extends FlameGame {
   }
 
   /// Starts a fresh game on the same renderer.
-  void reset(BlockfallGame next) {
+  void reset(BlockfallGame next, {int? themeStart}) {
     rules = next;
+    if (themeStart != null) this.themeStart = themeStart;
+    _fromTheme = null;
+    _toTheme = null;
+    _fade = 1;
     _flashes.clear();
     _popups.clear();
     _softHold = 0;
@@ -149,6 +177,22 @@ class BlockfallFlameGame extends FlameGame {
     _popups.removeWhere((p) => p.age >= _Popup.life);
     rules.tick(d);
     _pump();
+    final now = theme;
+    if (_toTheme == null) {
+      _toTheme = now;
+    } else if (now.id != _toTheme!.id) {
+      // Level-up: everything fades into the new theme; input and locks are never delayed.
+      _fromTheme = _toTheme;
+      _toTheme = now;
+      _fade = 0;
+    }
+    if (_fade < 1) _fade = min(1, _fade + d / (kThemeFadeMs / 1000));
+  }
+
+  @override
+  void onRemove() {
+    tiles.dispose();
+    super.onRemove();
   }
 
   void _pump() {
@@ -197,10 +241,30 @@ class BlockfallFlameGame extends FlameGame {
       Rect.fromLTWH(0, 0, g.width, g.height),
       const Radius.circular(14),
     );
-    canvas.drawRRect(panel, Paint()..color = const Color(0xE608141B));
+    // Well, cells, ghost and falling piece in the theme; during a change the new theme
+    // fades in over the old one.
+    if (_fade < 1) {
+      _drawScene(canvas, _from, panel, pulse);
+      canvas.saveLayer(
+        null,
+        Paint()..color = Color.fromRGBO(255, 255, 255, _fade),
+      );
+      _drawScene(canvas, _to, panel, pulse);
+      canvas.restore();
+    } else {
+      _drawScene(canvas, _to, panel, pulse);
+    }
+
+    _drawOverlays(canvas, g, panel, slow);
+  }
+
+  /// Well panel, grid, locked cells, ghost and the falling piece in [theme].
+  void _drawScene(Canvas canvas, BlockTheme theme, RRect panel, double pulse) {
+    final g = _geo;
+    canvas.drawRRect(panel, Paint()..color = theme.wellColor);
     // Faint grid.
     final grid = Paint()
-      ..color = const Color(0x0DFFFFFF)
+      ..color = theme.gridLine
       ..strokeWidth = 1;
     for (var c = 1; c < BlockfallLayout.cols; c++) {
       final x = g.left + c * g.cell;
@@ -225,10 +289,11 @@ class BlockfallFlameGame extends FlameGame {
         final color = well.colorAt(r, c);
         if (color == 0) continue;
         final o = g.cellOrigin(r, c)!;
-        GemPainter.drawGem(
+        tiles.draw(
           canvas,
-          Rect.fromLTWH(o.$1, o.$2, g.cell, g.cell),
+          theme,
           color,
+          Rect.fromLTWH(o.$1, o.$2, g.cell, g.cell),
           prism: well.prismAt(r, c),
           pulse: (pulse + c * 0.13 + r * 0.07) % 1.0,
         );
@@ -243,7 +308,7 @@ class BlockfallFlameGame extends FlameGame {
           for (final cell in ghost.cells) {
             final o = g.cellOrigin(cell.row, cell.col);
             if (o == null) continue;
-            GemPainter.drawGhost(
+            theme.paintGhost(
               canvas,
               Rect.fromLTWH(o.$1, o.$2, g.cell, g.cell),
               active.type!.colorId,
@@ -251,9 +316,12 @@ class BlockfallFlameGame extends FlameGame {
           }
         }
       }
-      _drawActive(canvas, g, active, pulse);
+      _drawActive(canvas, g, theme, active, pulse);
     }
+  }
 
+  /// Line-clear flashes, score popups and the outline: theme independent.
+  void _drawOverlays(Canvas canvas, WellGeometry g, RRect panel, bool slow) {
     for (final f in _flashes) {
       final a = (1 - f.age / _Flash.life).clamp(0.0, 1.0);
       final base = f.prism ? const Color(0xFFFFE066) : const Color(0xFFFFFFFF);
@@ -310,6 +378,7 @@ class BlockfallFlameGame extends FlameGame {
   void _drawActive(
     Canvas canvas,
     WellGeometry g,
+    BlockTheme theme,
     ActivePiece piece,
     double pulse,
   ) {
@@ -320,10 +389,11 @@ class BlockfallFlameGame extends FlameGame {
       if (piece.isBomb) {
         GemPainter.drawBomb(canvas, rect, pulse * 2 % 1.0);
       } else {
-        GemPainter.drawGem(
+        tiles.draw(
           canvas,
-          rect,
+          theme,
           piece.type!.colorId,
+          rect,
           prism: cell.prism,
           pulse: pulse,
         );

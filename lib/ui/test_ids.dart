@@ -20,6 +20,9 @@ abstract final class TestIds {
   static const gameScore = Key('game.score');
   static const gameBest = Key('game.best');
   static const gameLevel = Key('game.level');
+
+  /// Invisible; its Semantics value is the id of the current theme.
+  static const gameTheme = Key('game.theme');
   static const gameGoal = Key('game.goal');
   static const gameHold = Key('game.hold');
   static const gameHoldPiece = Key('game.holdPiece');

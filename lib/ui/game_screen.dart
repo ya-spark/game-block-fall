@@ -16,9 +16,11 @@ import '../game/rules/blockfall_game.dart';
 import '../game/rules/events.dart';
 import '../game/rules/powerups.dart';
 import '../game/rules/well.dart';
+import '../game/themes/block_theme.dart';
 import 'game_over_panel.dart';
 import 'hud_widgets.dart';
 import 'test_ids.dart';
+import 'theme_fade.dart';
 
 /// `--dart-define=BLOCKFALL_SEED=<int>` fixes the bag order and prism placement.
 const int kBlockfallSeed = int.fromEnvironment(
@@ -40,6 +42,8 @@ const EdgeInsets _kSmallPadding = EdgeInsets.symmetric(
   horizontal: 18,
   vertical: 9,
 );
+
+final ValueNotifier<int> _noRevision = ValueNotifier(0);
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key, this.game});
@@ -94,6 +98,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _flame = BlockfallFlameGame(
       rules: rules,
       showGhost: _s!.profile.data.ghostOn,
+      themeStart: _s!.profile.data.themeIndex,
     )..onEvent = _onEvent;
     _syncAudio();
     _audio.startAmbience();
@@ -172,6 +177,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _praiseClear(e);
       case LevelUp():
         _audio.voice('awesome');
+        // Remember the rotation so a new game (or a new launch) continues it.
+        s.profile.setThemeIndex(_flame!.themeIndex);
       case PowerUpUsed():
         _persistStock();
       case GameOver():
@@ -360,7 +367,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _gameIndex++;
         _recorded = false;
         setState(() => _paused = false);
-        flame.reset(_newRules());
+        flame.reset(_newRules(), themeStart: s.profile.data.themeIndex);
         _warned = false;
         _audio.voice('go');
         _syncPause();
@@ -480,14 +487,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         if (!didPop) _pause();
       },
       child: Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(0, -1),
-              radius: 1.4,
-              colors: [Color(0xFF35C2D8), Color(0xFF2C73E0), Color(0xFF4A3FB5)],
-              stops: [0, 0.55, 1],
-            ),
+        body: ListenableBuilder(
+          listenable: flame?.revision ?? _noRevision,
+          builder: (context, child) => ThemeBackground(
+            theme:
+                flame?.theme ?? BlockTheme.byIndex(_s!.profile.data.themeIndex),
+            child: child!,
           ),
           child: SafeArea(
             child: flame == null
@@ -524,6 +529,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final left = s.profile.data.leftHanded;
     return Column(
       children: [
+        // Invisible; the current theme id is its Semantics value (tests, bot).
+        Semantics(
+          key: TestIds.gameTheme,
+          identifier: 'game.theme',
+          value: flame.theme.id,
+          child: const SizedBox.shrink(),
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
           child: Row(
@@ -614,6 +626,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           child: hold == null
               ? const SizedBox.shrink()
               : PiecePreview(
+                  theme: flame.theme,
                   type: hold.type,
                   prismCell: hold.prismCell,
                   cell: l.miniCell(l.boxWidth),
@@ -660,6 +673,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               width: l.boxWidth,
               height: l.hudHeight,
               child: PiecePreview(
+                theme: flame.theme,
                 type: next[i].type,
                 prismCell: next[i].prismCell,
                 cell: l.miniCell(l.boxWidth) * (i == 0 ? 1 : 0.8),

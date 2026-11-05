@@ -4,6 +4,7 @@ import 'package:blockfall/core/services.dart';
 import 'package:blockfall/game/rules/blockfall_game.dart';
 import 'package:blockfall/game/rules/piece_type.dart';
 import 'package:blockfall/game/rules/powerups.dart';
+import 'package:blockfall/ui/game_screen.dart';
 import 'package:blockfall/ui/settings_screen.dart';
 import 'package:blockfall/ui/test_ids.dart';
 import 'package:flutter/material.dart';
@@ -360,6 +361,42 @@ void main() {
       expect(semValue(tester, TestIds.gameOverScore), '0');
       expect(find.byKey(TestIds.gameBanner), findsNothing);
       handle.dispose();
+    });
+
+    testWidgets('Continue is the large button, Play again the small one', (
+      tester,
+    ) async {
+      await openGame(tester, doomed());
+      final cont = tester.getSize(find.byKey(TestIds.gameOverRevive));
+      final retry = tester.getSize(find.byKey(TestIds.gameOverRetry));
+      expect(cont.height, greaterThan(retry.height));
+      expect(cont.width, greaterThan(retry.width));
+      expect(find.text('$kContinueLabel · 3 left'), findsOneWidget);
+      expect(find.byKey(TestIds.gameOverHome), findsOneWidget);
+    });
+
+    testWidgets('Play again becomes the large button without Continue', (
+      tester,
+    ) async {
+      final g = doomed();
+      for (var i = 0; i < 3; i++) {
+        if (!g.isGameOver) g.hardDrop();
+        expect(g.revive(), isTrue);
+        for (var r = 2; r < 22; r++) {
+          for (var c = 3; c <= 6; c++) {
+            g.well.set(r, c, 2);
+          }
+        }
+        g.hardDrop();
+      }
+      expect(g.canRevive, isFalse);
+      await openGame(tester, g);
+      expect(find.byKey(TestIds.gameOverRevive), findsNothing);
+      final retry = tester.getSize(find.byKey(TestIds.gameOverRetry));
+      final home = tester.getSize(find.byKey(TestIds.gameOverHome));
+      expect(retry.height, greaterThan(home.height));
+      expect(retry.width, greaterThan(home.width));
+      expect(find.byKey(TestIds.gameOverHome), findsOneWidget);
     });
 
     testWidgets('revive watches a rewarded ad and continues the game', (

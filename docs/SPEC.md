@@ -67,7 +67,9 @@ Soft drop falls at 20x the current gravity (minimum step 0.03 s/row). Hard drop 
 
 Inventory: a fresh install starts with 1 of each type; stock persists in the save (earned from coins or rewarded ads). Coin prices: Sweep 60, Slow 40, Bomb 50. A power-up button with 0 stock opens a sheet with two choices: "Buy with coins" and "Watch ad for +1" (rewarded). A refill via rewarded ad grants +1 of that type, at most 3 rewarded refills per game.
 
-**Revive.** Once per game, after game over, a rewarded ad lets the player continue: the top 8 rows of the well (including hidden) are cleared and the next piece spawns; score and level are kept. Only one revive per game. The dialog hides the revive button after it was used.
+**Revive.** Once per game, after game over, a rewarded ad lets the player continue: the top 8 rows of the well (including hidden) are cleared and the next piece spawns; score and level are kept. Only one revive per game. The dialog hides the Continue button after it was used. Player-facing wording is "Continue" (the code and test IDs keep "revive").
+
+**Game over layout.** Continue is the focus: label `Continue · N left` (constant `kContinueLabel` in `lib/ui/game_screen.dart`), gold primary style, font size 22, padding 28x16, alone on its own row; not shown when no continue is left. Under it, one row with Play again (secondary, font size 15, padding 18x9) and Home (small ghost style, font size 15, padding 18x9). When Continue is not available, Play again takes the large gold style (font size 22, padding 28x16). Test IDs unchanged: `game.over.revive`, `game.over.retry`, `game.over.home`.
 
 **Pause.** Pausing stops gravity and lock timer. Backgrounding the app auto-pauses. No score or timer progress while paused.
 

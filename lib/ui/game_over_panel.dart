@@ -8,6 +8,7 @@ class GameOverPanel extends StatelessWidget {
     required this.title,
     required this.details,
     required this.buttons,
+    this.leadButton,
   });
 
   final String title;
@@ -15,6 +16,9 @@ class GameOverPanel extends StatelessWidget {
   /// Score, best, medal... shown under the title.
   final List<Widget> details;
   final List<GameOverButton> buttons;
+
+  /// Optional main action shown alone on the row above [buttons].
+  final GameOverButton? leadButton;
 
   /// White text with a dark outline: readable over any background without a panel.
   static List<Shadow> get outline => const [
@@ -69,6 +73,10 @@ class GameOverPanel extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
+                if (leadButton != null) ...[
+                  leadButton!,
+                  const SizedBox(height: 10),
+                ],
                 Wrap(
                   alignment: WrapAlignment.center,
                   spacing: 10,
@@ -94,12 +102,16 @@ class GameOverButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     this.kind = GameOverButtonKind.secondary,
+    this.fontSize = 16,
+    this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
   });
 
   final String label;
   final IconData? icon;
   final VoidCallback? onPressed;
   final GameOverButtonKind kind;
+  final double fontSize;
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) {
@@ -146,27 +158,31 @@ class GameOverButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(28),
             onTap: onPressed,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (icon != null) ...[
-                    Icon(icon, size: 20, color: fg),
-                    const SizedBox(width: 6),
-                  ],
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: fg,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                      shadows: kind == GameOverButtonKind.ghost
-                          ? GameOverPanel.outline
-                          : null,
+              padding: padding,
+              // Shrinks the content on very narrow screens instead of overflowing.
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (icon != null) ...[
+                      Icon(icon, size: fontSize + 4, color: fg),
+                      const SizedBox(width: 6),
+                    ],
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: fg,
+                        fontSize: fontSize,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                        shadows: kind == GameOverButtonKind.ghost
+                            ? GameOverPanel.outline
+                            : null,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

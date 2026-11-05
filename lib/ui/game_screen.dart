@@ -26,6 +26,21 @@ const int kBlockfallSeed = int.fromEnvironment(
   defaultValue: -1,
 );
 
+/// Player-facing label of the game-over continue action (rewarded ad). Rename it here only.
+const String kContinueLabel = 'Continue';
+
+/// Game-over button sizes (see docs/SPEC.md, "Game over layout").
+const double _kLargeFont = 22;
+const EdgeInsets _kLargePadding = EdgeInsets.symmetric(
+  horizontal: 28,
+  vertical: 16,
+);
+const double _kSmallFont = 15;
+const EdgeInsets _kSmallPadding = EdgeInsets.symmetric(
+  horizontal: 18,
+  vertical: 9,
+);
+
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key, this.game});
 
@@ -271,15 +286,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           if (game.score >= best && game.score > 0)
             const Text('New best!', style: TextStyle(color: kGold)),
         ],
+        leadButton: game.canRevive
+            ? GameOverButton(
+                key: TestIds.gameOverRevive,
+                kind: GameOverButtonKind.primary,
+                icon: Icons.smart_display,
+                label: '$kContinueLabel · ${game.revivesRemaining} left',
+                fontSize: _kLargeFont,
+                padding: _kLargePadding,
+                onPressed: () => Navigator.pop(ctx, 'revive'),
+              )
+            : null,
         buttons: [
-          if (game.canRevive)
-            GameOverButton(
-              key: TestIds.gameOverRevive,
-              kind: GameOverButtonKind.primary,
-              icon: Icons.smart_display,
-              label: 'Revive · ${game.revivesRemaining} left',
-              onPressed: () => Navigator.pop(ctx, 'revive'),
-            ),
           GameOverButton(
             key: TestIds.gameOverRetry,
             kind: game.canRevive
@@ -287,6 +305,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 : GameOverButtonKind.primary,
             icon: Icons.replay,
             label: 'Play again',
+            fontSize: game.canRevive ? _kSmallFont : _kLargeFont,
+            padding: game.canRevive ? _kSmallPadding : _kLargePadding,
             onPressed: () => Navigator.pop(ctx, 'retry'),
           ),
           GameOverButton(
@@ -294,6 +314,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             kind: GameOverButtonKind.ghost,
             icon: Icons.home,
             label: 'Home',
+            fontSize: _kSmallFont,
+            padding: _kSmallPadding,
             onPressed: () => Navigator.pop(ctx, 'home'),
           ),
         ],

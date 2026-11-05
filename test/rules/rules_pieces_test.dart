@@ -4,6 +4,7 @@ import 'package:blockfall/game/rules/active_piece.dart';
 import 'package:blockfall/game/rules/bag.dart';
 import 'package:blockfall/game/rules/blockfall_game.dart';
 import 'package:blockfall/game/rules/events.dart';
+import 'package:blockfall/game/rules/fit.dart';
 import 'package:blockfall/game/rules/gravity.dart';
 import 'package:blockfall/game/rules/piece_type.dart';
 import 'package:blockfall/game/rules/well.dart';
@@ -79,22 +80,76 @@ void main() {
     });
   });
 
+  // The first [n] piece types a game deals; the well is emptied between drops.
+  List<PieceType> pieceStream(BlockfallGame g, int n) {
+    final out = <PieceType>[];
+    while (out.length < n) {
+      out.add(g.currentPiece!.type!);
+      g.well.clearRowRange(0, Well.totalRows);
+      g.hardDrop();
+    }
+    return out;
+  }
+
   group('bag and next queue (criteria 9-10)', () {
-    test('seeded: the first 14 pieces contain each type exactly twice', () {
+    test('seeded: every bag of 7 holds each type exactly once', () {
       for (final seed in [1, 2, 3, 42, 999]) {
-        final g = BlockfallGame.seeded(seed);
-        final first14 = [
-          g.currentPiece!.type!,
-          ...g.upcoming.take(13).map((s) => s.type),
-        ];
-        expect(first14, hasLength(14));
-        for (final t in PieceType.values) {
-          expect(first14.where((x) => x == t).length, 2, reason: 'seed $seed');
+        final types = pieceStream(BlockfallGame.seeded(seed), 14);
+        for (final bag in [types.sublist(0, 7), types.sublist(7)]) {
+          expect(bag.toSet(), hasLength(7), reason: 'seed $seed');
         }
-        // Equal to two bags of the plain randomizer with the same seed.
-        final bag = PieceBag(Random(seed));
-        expect(first14, [...bag.nextBag(), ...bag.nextBag()]);
       }
+    });
+
+    test('level 1 picks the Bar for a one-wide four-deep gap', () {
+      for (final seed in [1, 2, 3, 42, 999]) {
+        final g = BlockfallGame.seeded(
+          seed,
+          well: Well.fromRows(List.filled(4, '1111.11111')),
+        );
+        expect(g.currentPiece!.type, PieceType.bar, reason: 'seed $seed');
+      }
+    });
+
+    test('level 9 and up equals the plain bag order for the same seed', () {
+      for (final seed in [1, 2, 3, 42, 999]) {
+        for (final lines in [80, 150]) {
+          final g = BlockfallGame.seeded(
+            seed,
+            startLines: lines,
+            well: Well.fromRows(List.filled(4, '1111.11111')),
+          );
+          final bag = PieceBag(Random(seed));
+          expect(pieceStream(g, 14), [...bag.nextBag(), ...bag.nextBag()]);
+        }
+      }
+    });
+
+    test('never more than 12 pieces between two copies of a type', () {
+      for (var seed = 0; seed < 20; seed++) {
+        for (final lines in [0, 30, 60, 80]) {
+          final types = pieceStream(
+            BlockfallGame.seeded(seed, startLines: lines),
+            140,
+          );
+          for (final t in PieceType.values) {
+            final idx = [
+              for (var i = 0; i < types.length; i++)
+                if (types[i] == t) i,
+            ];
+            for (var i = 1; i < idx.length; i++) {
+              expect(idx[i] - idx[i - 1] - 1, lessThanOrEqualTo(12));
+            }
+          }
+        }
+      }
+    });
+
+    test('fit probability fades from 1 at level 1 to 0 at level 9', () {
+      expect(fitProbability(1), 1);
+      expect(fitProbability(5), 0.5);
+      expect(fitProbability(9), 0);
+      expect(fitProbability(20), 0);
     });
 
     test('same type never more than 12 pieces apart', () {
@@ -111,11 +166,10 @@ void main() {
       }
     });
 
-    test('next queue always has 3 pieces and the upcoming list stays long', () {
+    test('next queue always has 3 pieces', () {
       final g = BlockfallGame.seeded(11);
       for (var i = 0; i < 30 && !g.isGameOver; i++) {
         expect(g.next, hasLength(3));
-        expect(g.upcoming.length, greaterThanOrEqualTo(6));
         g.hardDrop();
         if (i % 3 == 0) g.moveLeft();
       }

@@ -27,7 +27,7 @@ No Flutter, Flame or Android imports in this folder. All randomness comes from a
 
 **Rotation system (simple, original).** Tap rotates clockwise only (no counter-clockwise in v1). Rotation uses fixed 4-state tables per piece. If the rotated position collides, try these offsets in order and use the first free one: (0,0), (-1,0), (+1,0), (0,-1 i.e. up 1), (-2,0), (+2,0). If none fits, the rotation is ignored. No other kick tables, no T-spin logic. The O piece never changes.
 
-**Randomizer.** 7-bag: each bag is a shuffled permutation of the 7 pieces; the queue refills when fewer than 7 pieces are upcoming. Never more than 12 pieces between two copies of the same piece type.
+**Randomizer.** 7-bag: each bag is a shuffled permutation of the 7 pieces. Never more than 12 pieces between two copies of the same piece type, and each bag holds each piece once. The Next queue holds 3 pieces; a piece is chosen at the moment it enters the queue, from the pieces of the current bag not yet dealt (a new bag is shuffled when none remain), by the well-fit rule: with probability `p(level) = max(0, (9 - level) / 8)` (level 1: 1, level 5: 0.5, level 9 and up: 0) take the best fit, otherwise take the next remaining piece in bag order (the plain bag; at level 9 and up the order equals the plain bag order for the seed). **Best fit:** for every remaining piece, simulate a hard drop of every rotation in every column on the current well and score the result; the piece with the lowest score wins. Score order (lexicographic, lower is better): (1) holes (empty cells below a filled cell in the same column), (2) bumpiness (sum of absolute height differences of neighbouring columns), (3) height (tallest column). Remaining ties go to the piece that comes first in bag order. The roll uses its own `Random` (seed `BLOCKFALL_SEED ^ 0xf17`), so a seed stays deterministic and prism placement is not affected.
 
 **Next queue.** Shows the next 3 pieces (the first is largest).
 
@@ -86,7 +86,7 @@ Inventory: a fresh install starts with 1 of each type; stock persists in the sav
 | Hook | J shape | blue |
 | Boot | L shape | orange |
 
-**Difficulty.** 15 gravity levels (table above). Level 1 starts relaxed; level 10 (0.12 s/row) needs good Hold/Next use. No level cap on play; speed caps at level 15. Modes in v1: one mode (Marathon, endless until block out).
+**Difficulty.** 15 gravity levels (table above). Level 1 starts relaxed; level 10 (0.12 s/row) needs good Hold/Next use. No level cap on play; speed caps at level 15. Piece choice helps early and fades out: `p(level) = max(0, (9 - level) / 8)` is the chance that the next piece is the best fit for the well (see Randomizer), so from level 9 the pieces are the plain bag. Modes in v1: one mode (Marathon, endless until block out).
 
 ## 5. Retention (all four ON; `app.config.yaml` `retention:` all true; reuse `lib/core/retention`)
 - **Daily reward**: 7-day cycle: day 1 30 coins, day 2 40, day 3 50, day 4 1x Slow, day 5 70 coins, day 6 1x Bomb, day 7 150 coins plus 1x Sweep. Miss a day resets to day 1 unless a streak freeze covers it.

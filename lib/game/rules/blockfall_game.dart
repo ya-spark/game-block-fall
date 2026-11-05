@@ -3,6 +3,7 @@ import 'dart:math';
 import 'active_piece.dart';
 import 'bag.dart';
 import 'events.dart';
+import 'fit.dart';
 import 'gravity.dart';
 import 'piece_type.dart';
 import 'powerups.dart';
@@ -18,12 +19,21 @@ class BlockfallGame {
   BlockfallGame({
     Random? random,
     Random? prismRandom,
+    Random? fitRandom,
     PieceBag? bag,
+    bool? adaptive,
+
+    /// Lines already cleared at the start (tests use it to begin at a higher level).
+    int startLines = 0,
     Well? well,
     Map<PowerUpType, int>? stock,
     this.prismInterval = prismEveryNthPiece,
   }) : _random = prismRandom ?? random ?? Random(0),
        _bag = bag ?? PieceBag(random ?? Random(0)),
+       _fitRandom = fitRandom ?? Random(0xf17),
+       // A fixed test sequence stays untouched unless adaptive is asked for.
+       _adaptive = adaptive ?? bag == null,
+       _lines = startLines,
        well = well ?? Well() {
     for (final t in PowerUpType.values) {
       _stock[t] = stock?[t] ?? 1;
@@ -36,17 +46,19 @@ class BlockfallGame {
   /// Deterministic game: the seed fixes bag order and prism placement.
   factory BlockfallGame.seeded(
     int seed, {
+    int startLines = 0,
     Well? well,
     Map<PowerUpType, int>? stock,
   }) => BlockfallGame(
     random: Random(seed),
     prismRandom: Random(seed ^ 0x5eed),
+    fitRandom: Random(seed ^ 0xf17),
+    startLines: startLines,
     well: well,
     stock: stock,
   );
 
   static const int nextCount = 3;
-  static const int minUpcoming = 7;
 
   /// Every n-th piece carries one prism cell (0 disables prisms).
   final int prismInterval;
@@ -54,6 +66,11 @@ class BlockfallGame {
   /// Draws the prism cell; separate from the bag so prisms never change the bag order.
   final Random _random;
   final PieceBag _bag;
+  final Random _fitRandom;
+  final bool _adaptive;
+
+  /// Pieces of the current bag not yet in the queue, in bag order.
+  final List<PieceType> _pool = [];
 
   /// The playfield (read for drawing; tests and debug hooks may preload it).
   final Well well;
@@ -70,7 +87,7 @@ class BlockfallGame {
   bool _canHold = true;
 
   int _score = 0;
-  int _lines = 0;
+  int _lines;
   int _combo = 0;
   bool _lastWasQuad = false;
   int _prismCoins = 0;
@@ -137,7 +154,7 @@ class BlockfallGame {
   /// The next 3 pieces (always full).
   List<PieceSpec> get next => List.unmodifiable(_queue.take(nextCount));
 
-  /// The whole upcoming queue (at least 6 pieces).
+  /// The whole upcoming queue (the Next pieces).
   List<PieceSpec> get upcoming => List.unmodifiable(_queue);
 
   /// Current seconds per row including a Slow power-up.
@@ -529,17 +546,27 @@ class BlockfallGame {
     _events.add(GameOver(reason));
   }
 
+  /// Keeps the Next queue full. Each piece is chosen when it enters the queue, from the
+  /// unused pieces of the current bag: the best fit for the well with probability
+  /// [fitProbability] of the level, otherwise the next piece in bag order.
   void _refillQueue() {
-    while (_queue.length < minUpcoming) {
-      for (final t in _bag.nextBag()) {
-        int? prism;
-        if (prismInterval > 0 &&
-            _generated % prismInterval == prismInterval - 1) {
-          prism = _random.nextInt(4);
+    while (_queue.length < nextCount) {
+      if (_pool.isEmpty) _pool.addAll(_bag.nextBag());
+      var i = 0;
+      if (_adaptive && _pool.length > 1) {
+        final p = fitProbability(level);
+        if (p >= 1 || (p > 0 && _fitRandom.nextDouble() < p)) {
+          i = bestFitIndex(well, _pool);
         }
-        _generated++;
-        _queue.add(PieceSpec(t, prismCell: prism));
       }
+      final t = _pool.removeAt(i);
+      int? prism;
+      if (prismInterval > 0 &&
+          _generated % prismInterval == prismInterval - 1) {
+        prism = _random.nextInt(4);
+      }
+      _generated++;
+      _queue.add(PieceSpec(t, prismCell: prism));
     }
   }
 

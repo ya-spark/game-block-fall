@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../core/services.dart';
+import '../game/themes/block_theme.dart';
+import 'home_hero.dart';
 import 'routes.dart';
 import 'test_ids.dart';
+import 'theme_fade.dart';
 import 'widgets.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -48,7 +51,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             )
           : null,
-      body: KidBackground(
+      body: ListenableBuilder(
+        listenable: profile,
+        builder: (context, child) => ThemeBackground(
+          theme: BlockTheme.byIndex(profile.data.themeIndex),
+          child: child!,
+        ),
         child: SafeArea(
           child: ListenableBuilder(
             listenable: profile,
@@ -60,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     mainAxisSize: MainAxisSize.min,
                     spacing: 14,
                     children: [
+                      const HomeHero(),
                       PopIn(
                         child: Text(
                           '\u{1F9E9} ${s.config.displayName} \u{2728}',

@@ -28,7 +28,11 @@ class BlockfallGame {
     Well? well,
     Map<PowerUpType, int>? stock,
     this.prismInterval = prismEveryNthPiece,
+    this.boomInterval = boomEveryNthPiece,
+    this.goldInterval = goldEveryNthPiece,
+    Random? specialRandom,
   }) : _random = prismRandom ?? random ?? Random(0),
+       _specialRandom = specialRandom ?? Random(0xb00),
        _bag = bag ?? PieceBag(random ?? Random(0)),
        _fitRandom = fitRandom ?? Random(0xf17),
        // A fixed test sequence stays untouched unless adaptive is asked for.
@@ -52,6 +56,7 @@ class BlockfallGame {
   }) => BlockfallGame(
     random: Random(seed),
     prismRandom: Random(seed ^ 0x5eed),
+    specialRandom: Random(seed ^ 0xb00),
     fitRandom: Random(seed ^ 0xf17),
     startLines: startLines,
     well: well,
@@ -63,8 +68,15 @@ class BlockfallGame {
   /// Every n-th piece carries one prism cell (0 disables prisms).
   final int prismInterval;
 
+  /// Every n-th piece carries one Boom block cell / one golden cell (0 disables).
+  final int boomInterval;
+  final int goldInterval;
+
   /// Draws the prism cell; separate from the bag so prisms never change the bag order.
   final Random _random;
+
+  /// Draws the cell of a Boom or golden block (also separate from the bag).
+  final Random _specialRandom;
   final PieceBag _bag;
   final Random _fitRandom;
   final bool _adaptive;
@@ -103,6 +115,7 @@ class BlockfallGame {
   bool _softLatchedOff = false;
   int _adRefills = 0;
   double _slowRemaining = 0;
+  double _rushRemaining = 0;
 
   // Statistics for GameSummary / challenges / achievements.
   int piecesPlaced = 0;
@@ -160,6 +173,10 @@ class BlockfallGame {
   /// Current seconds per row including a Slow power-up.
   double get secondsPerRow =>
       secondsPerRowForLevel(level) * (slowActive ? PowerUpRules.slowFactor : 1);
+
+  /// Gold Rush: seconds of play time left (0 when off).
+  double get rushRemaining => _rushRemaining;
+  bool get rushActive => _rushRemaining > 0;
 
   bool get slowActive => _slowRemaining > 0;
   double get slowRemaining => _slowRemaining;
@@ -269,13 +286,22 @@ class BlockfallGame {
       // Split at the end of Slow so the gravity change applies at the right moment.
       var chunk = remaining;
       var slowEnds = false;
+      var rushEnds = false;
       if (_slowRemaining > 0 && _slowRemaining <= chunk) {
         chunk = _slowRemaining;
         slowEnds = true;
       }
+      // Split at the end of Gold Rush too, so a clear is doubled exactly while it runs.
+      if (_rushRemaining > 0 && _rushRemaining <= chunk) {
+        chunk = _rushRemaining;
+        rushEnds = true;
+        slowEnds = _slowRemaining > 0 && _slowRemaining <= chunk;
+      }
       _advance(chunk);
       if (_slowRemaining > 0) _slowRemaining -= chunk;
       if (slowEnds || _slowRemaining < 1e-9) _slowRemaining = 0;
+      if (_rushRemaining > 0) _rushRemaining -= chunk;
+      if (rushEnds || _rushRemaining < 1e-9) _rushRemaining = 0;
       remaining -= chunk;
     }
   }
@@ -454,7 +480,7 @@ class BlockfallGame {
     }
     final cells = p.cells;
     for (final c in cells) {
-      well.set(c.row, c.col, p.type!.colorId, prism: c.prism);
+      well.set(c.row, c.col, p.type!.colorId, kind: c.kind);
     }
     piecesPlaced++;
     final hidden = cells.every((c) => c.row < Well.hiddenRows);
@@ -492,11 +518,41 @@ class BlockfallGame {
     final lvl = level; // before any level-up from this clear
     var prismRows = 0;
     var prismCells = 0;
+    var golds = 0;
+    final booms = <(int, int)>[];
     for (final r in rows) {
       final p = well.prismCountInRow(r);
       if (p > 0) prismRows++;
       prismCells += p;
+      golds += well.countKindInRow(r, CellKind.gold);
+      for (var c = 0; c < Well.cols; c++) {
+        if (well.kindAt(r, c) == CellKind.boom) booms.add((r, c));
+      }
     }
+    // Boom blocks blast the 3x3 area around them (like the Boom power-up: nothing falls
+    // because of the blast, rows it fills are not cleared). Cells of the cleared rows go
+    // anyway; blasted cells have no effect of their own except prisms, which still pay.
+    final blasted = <(int, int)>{};
+    for (final (br, bc) in booms) {
+      for (var r = br - 1; r <= br + 1; r++) {
+        for (var c = bc - 1; c <= bc + 1; c++) {
+          if (Well.inBounds(r, c) && well.isFilled(r, c) && !rows.contains(r)) {
+            blasted.add((r, c));
+          }
+        }
+      }
+    }
+    for (final (r, c) in blasted) {
+      if (well.prismAt(r, c)) prismCells++;
+      well.clearCell(r, c);
+    }
+    final blastCells =
+        [for (final (r, c) in blasted) (r + rows.where((x) => x > r).length, c)]
+          ..sort(
+            (a, b) =>
+                a.$1 != b.$1 ? a.$1.compareTo(b.$1) : a.$2.compareTo(b.$2),
+          );
+    final doubled = rushActive;
     _combo++;
     if (_combo > maxCombo) maxCombo = _combo;
     final b2b = n == 4 && _lastWasQuad;
@@ -513,6 +569,15 @@ class BlockfallGame {
       gain += perfectClearBonus * lvl;
       perfectClears++;
     }
+    // Gold Rush doubles line, combo, back-to-back and perfect-clear scores. The clear that
+    // brings the golden block is not doubled itself unless a rush is already running.
+    if (doubled) gain *= rushMultiplier;
+    gain += blastCellPoints * lvl * blasted.length;
+    if (golds > 0) {
+      _rushRemaining = rushActive
+          ? min(_rushRemaining + rushSeconds * golds, rushCapSeconds)
+          : min(rushSeconds * golds, rushCapSeconds);
+    }
     _score += gain;
     _lastWasQuad = n == 4;
     if (n == 4) quads++;
@@ -528,6 +593,9 @@ class BlockfallGame {
         combo: _combo,
         backToBack: b2b,
         perfectClear: perfect,
+        blastCells: blastCells,
+        goldBlocks: golds,
+        rushDoubled: doubled,
       ),
     );
     if (coins > 0) _events.add(PrismCoinsEarned(coins));
@@ -560,13 +628,31 @@ class BlockfallGame {
         }
       }
       final t = _pool.removeAt(i);
+      // One special cell at most: gold, then boom, then prism. The prism draw happens
+      // whenever a prism is due, so prism placement never depends on the other kinds.
       int? prism;
       if (prismInterval > 0 &&
           _generated % prismInterval == prismInterval - 1) {
         prism = _random.nextInt(4);
       }
+      int? boom;
+      if (boomInterval > 0 && _generated % boomInterval == boomInterval - 1) {
+        boom = _specialRandom.nextInt(4);
+      }
+      int? gold;
+      if (goldInterval > 0 && _generated % goldInterval == goldInterval - 1) {
+        gold = _specialRandom.nextInt(4);
+      }
+      if (gold != null) {
+        boom = null;
+        prism = null;
+      } else if (boom != null) {
+        prism = null;
+      }
       _generated++;
-      _queue.add(PieceSpec(t, prismCell: prism));
+      _queue.add(
+        PieceSpec(t, prismCell: prism, boomCell: boom, goldCell: gold),
+      );
     }
   }
 

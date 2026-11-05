@@ -13,6 +13,8 @@ BlockfallGame mk({
   List<String> rows = const [],
   List<PieceType> seq = const [PieceType.bar],
   int prismInterval = 0,
+  int boomInterval = 0,
+  int goldInterval = 0,
   Map<PowerUpType, int>? stock,
   Well? well,
 }) {
@@ -21,6 +23,8 @@ BlockfallGame mk({
     bag: PieceBag.sequence(seq),
     well: well ?? Well.fromRows(rows),
     prismInterval: prismInterval,
+    boomInterval: boomInterval,
+    goldInterval: goldInterval,
     stock: stock,
   );
 }

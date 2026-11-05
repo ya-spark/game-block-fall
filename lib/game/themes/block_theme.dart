@@ -4,6 +4,8 @@ import 'dart:ui';
 import 'package:flutter/painting.dart' show HSLColor;
 
 import '../rules/theme_rotation.dart';
+import '../rules/well.dart';
+import 'special_overlay.dart';
 
 /// Tiles are recorded once in this square unit space and scaled when drawn.
 const double tileUnit = 64;
@@ -645,6 +647,7 @@ class ThemeTileCache {
     int colorId,
     Rect rect, {
     bool prism = false,
+    CellKind kind = CellKind.normal,
     double pulse = 0,
   }) {
     canvas.save();
@@ -652,7 +655,8 @@ class ThemeTileCache {
     canvas.scale(rect.width / tileUnit, rect.height / tileUnit);
     canvas.drawPicture(tile(theme, colorId));
     canvas.restore();
-    if (prism) drawPrismGlow(canvas, rect, pulse);
+    if (prism || kind == CellKind.prism) drawPrismGlow(canvas, rect, pulse);
+    drawSpecialOverlay(canvas, kind, rect);
   }
 
   void dispose() {

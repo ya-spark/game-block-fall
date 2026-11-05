@@ -28,6 +28,7 @@ abstract final class TestIds {
   static const gameHoldPiece = Key('game.holdPiece');
   static Key gameNext(int i) => Key('game.next.$i');
   static const gameCombo = Key('game.combo');
+  static const gameRush = Key('game.rush');
   static const gamePause = Key('game.pause');
   static const gameBack = Key('game.back');
   static const gameBanner = Key('game.banner'); // must stay absent in play

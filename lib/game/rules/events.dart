@@ -43,7 +43,20 @@ class LinesCleared extends GameEvent {
     required this.combo,
     required this.backToBack,
     required this.perfectClear,
+    this.blastCells = const [],
+    this.goldBlocks = 0,
+    this.rushDoubled = false,
   });
+
+  /// Cells removed by Boom blocks beyond the cleared rows, as (row, col) in the well after
+  /// the rows collapsed (where a burst is drawn).
+  final List<(int, int)> blastCells;
+
+  /// Golden blocks that cleared with these rows (they start or extend Gold Rush).
+  final int goldBlocks;
+
+  /// This clear's score was doubled by a running Gold Rush.
+  final bool rushDoubled;
 
   /// Well row indices (0 = top hidden row) that were removed, ascending.
   final List<int> rows;

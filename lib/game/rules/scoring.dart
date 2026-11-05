@@ -9,6 +9,20 @@ const int hardDropPointsPerRow = 2;
 const int prismCoinCapPerGame = 40;
 const int prismEveryNthPiece = 4;
 
+/// Special cells on dealt pieces: every 9th piece a Boom block, every 13th a golden block
+/// (gold wins over boom, boom over prism when they fall on the same piece).
+const int boomEveryNthPiece = 9;
+const int goldEveryNthPiece = 13;
+
+/// Each extra cell a Boom block removes scores this times the level.
+const int blastCellPoints = 5;
+
+/// Gold Rush: line, combo, back-to-back and perfect-clear scores are multiplied for
+/// [rushSeconds] of play time; another golden block adds [rushSeconds] up to [rushCapSeconds].
+const int rushMultiplier = 2;
+const double rushSeconds = 10;
+const double rushCapSeconds = 30;
+
 int levelForLines(int totalLines) => 1 + totalLines ~/ linesPerLevel;
 
 /// Lines still needed to reach the next level.

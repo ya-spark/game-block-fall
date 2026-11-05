@@ -1,36 +1,58 @@
 import 'piece_type.dart';
+import 'well.dart';
 
-/// A piece type plus the optional prism cell chosen when it was generated.
+/// A piece type plus the optional special cell chosen when it was generated. A piece
+/// carries at most one special cell.
 class PieceSpec {
-  const PieceSpec(this.type, {this.prismCell});
+  const PieceSpec(this.type, {this.prismCell, this.boomCell, this.goldCell})
+    : assert(
+        (prismCell != null ? 1 : 0) +
+                (boomCell != null ? 1 : 0) +
+                (goldCell != null ? 1 : 0) <=
+            1,
+        'one special cell per piece',
+      );
   final PieceType type;
 
-  /// Index (0..3) into the piece's cell list, or null for a plain piece.
+  /// Index (0..3) into the piece's cell list, or null.
   final int? prismCell;
+  final int? boomCell;
+  final int? goldCell;
+
+  /// Kind of cell [i] of the piece.
+  CellKind kindOf(int i) {
+    if (prismCell == i) return CellKind.prism;
+    if (boomCell == i) return CellKind.boom;
+    if (goldCell == i) return CellKind.gold;
+    return CellKind.normal;
+  }
 
   @override
-  String toString() => 'PieceSpec(${type.name}, prism: $prismCell)';
+  String toString() =>
+      'PieceSpec(${type.name}, prism: $prismCell, boom: $boomCell, gold: $goldCell)';
 }
 
 /// One occupied cell of the falling piece.
 class PieceCell {
-  const PieceCell(this.row, this.col, {this.prism = false});
+  const PieceCell(this.row, this.col, {this.kind = CellKind.normal});
   final int row;
   final int col;
-  final bool prism;
+  final CellKind kind;
+  bool get prism => kind == CellKind.prism;
 
   @override
   bool operator ==(Object other) =>
       other is PieceCell &&
       other.row == row &&
       other.col == col &&
-      other.prism == prism;
+      other.kind == kind;
 
   @override
-  int get hashCode => Object.hash(row, col, prism);
+  int get hashCode => Object.hash(row, col, kind);
 
   @override
-  String toString() => '($row,$col${prism ? ',prism' : ''})';
+  String toString() =>
+      '($row,$col${kind == CellKind.normal ? '' : ',${kind.name}'})';
 }
 
 /// The falling piece (or the single-cell bomb when [spec] is null). Immutable.
@@ -66,11 +88,7 @@ class ActivePiece {
     final offsets = s.type.states[rotation];
     return [
       for (var i = 0; i < offsets.length; i++)
-        PieceCell(
-          row + offsets[i].$2,
-          col + offsets[i].$1,
-          prism: s.prismCell == i,
-        ),
+        PieceCell(row + offsets[i].$2, col + offsets[i].$1, kind: s.kindOf(i)),
     ];
   }
 

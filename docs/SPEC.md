@@ -58,14 +58,21 @@ Soft drop falls at 20x the current gravity (minimum step 0.03 s/row). Hard drop 
 - Soft drop: +1 per row dropped by the player. Hard drop: +2 per row dropped.
 - Score is an int, never negative. Best score is stored via SaveService.
 
-**Prism twist details.** When a piece is generated, every 4th piece overall (piece index 3, 7, 11, ...) has exactly one random cell flagged `prism` (shown as a glowing gem). The prism stays with that cell when it locks. A prism cell is only collected by clearing its row; Sweep and Bomb removal do NOT pay coins. Max coins from prisms per game: 40 (stops coin farming).
+**Prism twist details.** When a piece is generated, every 4th piece overall (piece index 3, 7, 11, ...) has exactly one random cell flagged `prism` (shown as a glowing gem). The prism stays with that cell when it locks. A prism cell is only collected by clearing its row; Sweep and Boom power-up removal do NOT pay coins. Max coins from prisms per game: 40 (stops coin farming).
+
+**Special blocks and Gold Rush** (code: `CellKind { normal, prism, boom, gold }` in `well.dart`; dealing in `BlockfallGame._refillQueue`; effects in `BlockfallGame._clearRows`; constants in `scoring.dart`). The prism is the "gem" block and stays exactly as above.
+- Dealing: every `boomEveryNthPiece = 9`th piece (index 8, 17, ...) has one Boom block cell and every `goldEveryNthPiece = 13`th piece (index 12, 25, ...) one golden cell. A piece carries at most one special cell; when several fall on one piece the order is gold, then boom, then prism. The cell index (0..3) is drawn from its own seeded `Random` (seed `BLOCKFALL_SEED ^ 0xb00`), so the bag order never changes and prism placement is still drawn whenever a prism is due. The kind travels with the cell into the well, is saved with the cell and is removed with it.
+- Effects resolve when the row that holds the cell clears:
+  - **Boom block**: every filled cell in the 3x3 area around it that is not in a cleared row is removed first (same rules as the Boom power-up: cells above do not fall because of the blast, rows that become full because of it are not cleared). Each such extra cell scores `blastCellPoints = 5` x level (the level before any level-up from this clear), not doubled by Gold Rush. Then the normal row clear and collapse follow. Cells removed by a blast do not trigger their own effect, except prism cells, which still pay their coin (the row-score doubling needs the prism's own row to clear).
+  - **Golden block**: starts **Gold Rush**: for `rushSeconds = 10` s of play time (the timer pauses with the game, ends mid-tick exactly) every line, combo, back-to-back and perfect-clear score is multiplied by `rushMultiplier = 2`. The clear that brings the golden block is not doubled unless a rush already runs. Each further golden block during a rush adds 10 s, capped at `rushCapSeconds = 30`. A new game starts with no rush.
+- Look: every kind is an overlay on top of the current theme skin (Boom block = friendly star-burst, golden = gold sheen with a star; prism keeps its sparkle). The blast is a 0.5 s cartoon star burst on each removed cell (grows and fades, no flashing). During a rush the well has a soft golden shimmer (slow sway, no flashing) and a chip "GOLD RUSH x2 · Ns" shows the seconds left. Test ID `game.rush`: Semantics value = whole seconds left (0 when off).
 
 **Power-ups** (3 types, max 3 uses of each type per game; each use costs 1 from the player inventory):
 1. **Sweep** (icon: wave): removes the 3 bottom rows of the well; everything above falls by 3. Gives no score, counts 3 towards totalLines and goal, does not change combo.
 2. **Slow** (icon: hourglass): for 20 s of play time (pauses with the game) seconds per row are doubled (half speed). Using it while already active is refused and costs nothing.
-3. **Bomb** (icon: bomb): replaces the currently falling piece with a single-cell bomb at the same column. It falls like a piece; on lock it removes all cells in the 3x3 area around its cell, cells above are not moved (no collapse) and rows that become full are not cleared. The bomb leaves no cell behind. No score.
+3. **Boom** (icon: bomb; shown as "Boom" to the player, code and test IDs keep `bomb`): replaces the currently falling piece with a single-cell bomb at the same column. It falls like a piece; on lock it removes all cells in the 3x3 area around its cell, cells above are not moved (no collapse) and rows that become full are not cleared. The bomb leaves no cell behind. No score.
 
-Inventory: a fresh install starts with 1 of each type; stock persists in the save (earned from coins or rewarded ads). Coin prices: Sweep 60, Slow 40, Bomb 50. A power-up button with 0 stock opens a sheet with two choices: "Buy with coins" and "Watch ad for +1" (rewarded). A refill via rewarded ad grants +1 of that type, at most 3 rewarded refills per game.
+Inventory: a fresh install starts with 1 of each type; stock persists in the save (earned from coins or rewarded ads). Coin prices: Sweep 60, Slow 40, Boom 50. A power-up button with 0 stock opens a sheet with two choices: "Buy with coins" and "Watch ad for +1" (rewarded). A refill via rewarded ad grants +1 of that type, at most 3 rewarded refills per game.
 
 **Revive.** Once per game, after game over, a rewarded ad lets the player continue: the top 8 rows of the well (including hidden) are cleared and the next piece spawns; score and level are kept. Only one revive per game. The dialog hides the Continue button after it was used. Player-facing wording is "Continue" (the code and test IDs keep "revive").
 
@@ -89,7 +96,7 @@ Inventory: a fresh install starts with 1 of each type; stock persists in the sav
 **Difficulty.** 15 gravity levels (table above). Level 1 starts relaxed; level 10 (0.12 s/row) needs good Hold/Next use. No level cap on play; speed caps at level 15. Piece choice helps early and fades out: `p(level) = max(0, (9 - level) / 8)` is the chance that the next piece is the best fit for the well (see Randomizer), so from level 9 the pieces are the plain bag. Modes in v1: one mode (Marathon, endless until block out).
 
 ## 5. Retention (all four ON; `app.config.yaml` `retention:` all true; reuse `lib/core/retention`)
-- **Daily reward**: 7-day cycle: day 1 30 coins, day 2 40, day 3 50, day 4 1x Slow, day 5 70 coins, day 6 1x Bomb, day 7 150 coins plus 1x Sweep. Miss a day resets to day 1 unless a streak freeze covers it.
+- **Daily reward**: 7-day cycle: day 1 30 coins, day 2 40, day 3 50, day 4 1x Slow, day 5 70 coins, day 6 1x Boom, day 7 150 coins plus 1x Sweep. Miss a day resets to day 1 unless a streak freeze covers it.
 - **Streaks with freeze**: consecutive daily-play streak; one freeze (earned at 7-day streak or bought for 100 coins) covers one missed day automatically.
 - **Three daily challenges** (picked per day from the pool; reuse `ChallengeKind` approach, new templates for falling blocks). Reward 25 to 60 coins each:
   1. Score N points in one game (e.g. 3000/5000/8000).
@@ -115,7 +122,7 @@ Inventory: a fresh install starts with 1 of each type; stock persists in the sav
 Reference layout for the game screen (portrait): score pill on top, well in the middle, HOLD box on the left with LEVEL and GOAL under it, NEXT queue on the right, three power-up buttons along the bottom.
 
 - **Home**: Play, Daily reward, Challenges, Shop, Settings, coins, best score, streak, banner. (Keep existing `home.*` IDs.)
-- **Game**: IDs `game.widget`, `game.well`, `game.score`, `game.best`, `game.level`, `game.theme` (invisible, value = theme id), `game.goal`, `game.hold` (tap to hold), `game.holdPiece`, `game.next.0`, `game.next.1`, `game.next.2`, `game.combo`, `game.pause`, `game.back`, `game.powerup.sweep`, `game.powerup.slow`, `game.powerup.bomb`, and for each `game.powerup.<name>.count`; refill sheet `game.refill.coins`, `game.refill.ad`. Game over: `game.over.dialog`, `game.over.revive`, `game.over.retry`, `game.over.home`, `game.over.score`. Pause dialog: `game.pause.resume`, `game.pause.quit`.
+- **Game**: IDs `game.widget`, `game.well`, `game.score`, `game.best`, `game.level`, `game.theme` (invisible, value = theme id), `game.goal`, `game.hold` (tap to hold), `game.holdPiece`, `game.next.0`, `game.next.1`, `game.next.2`, `game.combo`, `game.rush`, `game.pause`, `game.back`, `game.powerup.sweep`, `game.powerup.slow`, `game.powerup.bomb`, and for each `game.powerup.<name>.count`; refill sheet `game.refill.coins`, `game.refill.ad`. Game over: `game.over.dialog`, `game.over.revive`, `game.over.retry`, `game.over.home`, `game.over.score`. Pause dialog: `game.pause.resume`, `game.pause.quit`.
 - **On-screen controls** (control scheme "Buttons", an accessibility option and the bot's driver): `game.ctl.left`, `game.ctl.right`, `game.ctl.rotate`, `game.ctl.softDrop`, `game.ctl.hardDrop`. Present only when Settings controls = Buttons; Hold and power-ups are always on screen.
 - **Daily reward**, **Challenges/Achievements**, **Shop**, **Settings**: existing IDs kept. Settings adds `settings.controls` (Touch/Buttons), `settings.ghost`.
 
@@ -182,7 +189,7 @@ Rules (VM unit tests, `test/rules/`):
 12. After 10 resets the lock timer is not restarted by moves; the piece locks after at most 0.5 s.
 13. Rotation: the I piece next to the left wall rotated to vertical applies a kick offset and lands in bounds; if no offset fits, the state is unchanged; O never changes.
 14. Game over: spawning when a spawn cell is filled ends the game; a piece locked fully in the hidden rows ends the game.
-15. Sweep removes the bottom 3 rows, adds 3 to lines, no score; Slow doubles seconds per row for 20 s of game time and the timer stops while paused; Bomb removes the 3x3 area at its landing; a 4th use of one type in a game is refused; stock never goes negative.
+15. Sweep removes the bottom 3 rows, adds 3 to lines, no score; Slow doubles seconds per row for 20 s of game time and the timer stops while paused; Boom removes the 3x3 area at its landing; a 4th use of one type in a game is refused; stock never goes negative.
 16. Revive: available exactly once per game; after it the top 8 rows are empty and score/level are unchanged; the second game over shows no revive button.
 
 App-level (widget/integration tests via test IDs):

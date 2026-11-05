@@ -574,6 +574,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           showStreak: s.config.retention.streaks,
           combo: rules.combo,
           prismCoins: rules.coinsFromPrisms,
+          rushSeconds: rules.rushRemaining.ceil(),
         ),
         Expanded(
           child: LayoutBuilder(
@@ -627,8 +628,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               ? const SizedBox.shrink()
               : PiecePreview(
                   theme: flame.theme,
-                  type: hold.type,
-                  prismCell: hold.prismCell,
+                  spec: hold,
                   cell: l.miniCell(l.boxWidth),
                   dim: !rules.canHold,
                 ),
@@ -674,8 +674,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               height: l.hudHeight,
               child: PiecePreview(
                 theme: flame.theme,
-                type: next[i].type,
-                prismCell: next[i].prismCell,
+                spec: next[i],
                 cell: l.miniCell(l.boxWidth) * (i == 0 ? 1 : 0.8),
               ),
             ),
@@ -907,11 +906,15 @@ class _StreakBar extends StatelessWidget {
     required this.showStreak,
     required this.combo,
     required this.prismCoins,
+    required this.rushSeconds,
   });
   final int streak;
   final bool showStreak;
   final int combo;
   final int prismCoins;
+
+  /// Whole seconds of Gold Rush left (0 when off).
+  final int rushSeconds;
 
   @override
   Widget build(BuildContext context) {
@@ -942,6 +945,32 @@ class _StreakBar extends StatelessWidget {
               value: '$combo',
               label: 'Combo',
               child: Text(combo > 0 ? 'Combo x$combo' : 'Combo -'),
+            ),
+            // Always present: Semantics value = whole seconds left (0 when off).
+            Semantics(
+              key: TestIds.gameRush,
+              identifier: 'game.rush',
+              value: '$rushSeconds',
+              child: rushSeconds <= 0
+                  ? const SizedBox.shrink()
+                  : Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0x33FFC928),
+                        border: Border.all(color: const Color(0xFFFFC928)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'GOLD RUSH x2 · ${rushSeconds}s',
+                        style: const TextStyle(
+                          color: Color(0xFFFFE08A),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
             ),
             if (prismCoins > 0)
               Row(

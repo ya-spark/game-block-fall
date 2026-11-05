@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../game/flame/blockfall_flame_game.dart' show previewCells;
 import '../game/flame/gem_painter.dart';
+import '../game/rules/active_piece.dart';
 import '../game/rules/piece_type.dart';
 import '../game/rules/powerups.dart';
 import '../game/themes/block_theme.dart';
@@ -39,21 +40,23 @@ class ValueNode extends StatelessWidget {
 class PiecePreview extends StatelessWidget {
   const PiecePreview({
     super.key,
-    required this.type,
-    this.prismCell,
+    required this.spec,
     required this.cell,
     required this.theme,
     this.dim = false,
   });
   final BlockTheme theme;
-  final PieceType type;
-  final int? prismCell;
+
+  /// The piece with its special cell, if any.
+  final PieceSpec spec;
   final double cell;
   final bool dim;
 
+  PieceType get type => spec.type;
+
   @override
   Widget build(BuildContext context) {
-    final p = previewCells(type, prismCell);
+    final p = previewCells(type, null);
     // The previews cross-fade with the well when the theme changes.
     return Opacity(
       opacity: dim ? 0.35 : 1,
@@ -61,7 +64,7 @@ class PiecePreview extends StatelessWidget {
         theme: theme,
         builder: (context, from, to, t) => CustomPaint(
           size: Size(p.cols * cell, p.rows * cell),
-          painter: _PreviewPainter(type, prismCell, cell, from, to, t),
+          painter: _PreviewPainter(spec, cell, from, to, t),
         ),
       ),
     );
@@ -71,23 +74,17 @@ class PiecePreview extends StatelessWidget {
 final ThemeTileCache _previewTiles = ThemeTileCache();
 
 class _PreviewPainter extends CustomPainter {
-  _PreviewPainter(
-    this.type,
-    this.prismCell,
-    this.cell,
-    this.from,
-    this.to,
-    this.t,
-  );
-  final PieceType type;
-  final int? prismCell;
+  _PreviewPainter(this.spec, this.cell, this.from, this.to, this.t);
+  final PieceSpec spec;
   final double cell;
   final BlockTheme from;
   final BlockTheme to;
   final double t;
 
+  PieceType get type => spec.type;
+
   void _cells(Canvas canvas, BlockTheme theme) {
-    final p = previewCells(type, prismCell);
+    final p = previewCells(type, null);
     for (var i = 0; i < p.cells.length; i++) {
       final (c, r) = p.cells[i];
       _previewTiles.draw(
@@ -95,7 +92,7 @@ class _PreviewPainter extends CustomPainter {
         theme,
         type.colorId,
         Rect.fromLTWH(c * cell, r * cell, cell, cell),
-        prism: prismCell == i,
+        kind: spec.kindOf(i),
         pulse: 0.25,
       );
     }
@@ -116,7 +113,9 @@ class _PreviewPainter extends CustomPainter {
   @override
   bool shouldRepaint(_PreviewPainter old) =>
       old.type != type ||
-      old.prismCell != prismCell ||
+      old.spec.prismCell != spec.prismCell ||
+      old.spec.boomCell != spec.boomCell ||
+      old.spec.goldCell != spec.goldCell ||
       old.cell != cell ||
       old.from.id != from.id ||
       old.to.id != to.id ||
@@ -317,7 +316,7 @@ class PowerUpButton extends StatelessWidget {
   static String title(PowerUpType t) => switch (t) {
     PowerUpType.sweep => 'Sweep',
     PowerUpType.slow => 'Slow',
-    PowerUpType.bomb => 'Bomb',
+    PowerUpType.bomb => 'Boom',
   };
 
   Widget _icon() => switch (type) {

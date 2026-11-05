@@ -15,6 +15,7 @@ import '../rules/well.dart';
 import 'blockfall_layout.dart';
 import '../rules/theme_rotation.dart';
 import '../themes/block_theme.dart';
+import '../themes/special_overlay.dart';
 import 'gem_painter.dart';
 import 'touch_controls.dart';
 
@@ -77,6 +78,7 @@ class BlockfallFlameGame extends FlameGame {
   int _lastHud = -1;
   final List<_Flash> _flashes = [];
   final List<_Popup> _popups = [];
+  final List<_Blast> _blasts = [];
 
   @override
   Color backgroundColor() => const Color(0x00000000);
@@ -97,6 +99,7 @@ class BlockfallFlameGame extends FlameGame {
     _fade = 1;
     _flashes.clear();
     _popups.clear();
+    _blasts.clear();
     _softHold = 0;
     _softRequested = false;
     touch.cancel();
@@ -175,6 +178,10 @@ class BlockfallFlameGame extends FlameGame {
       p.age += d;
     }
     _popups.removeWhere((p) => p.age >= _Popup.life);
+    for (final b in _blasts) {
+      b.age += d;
+    }
+    _blasts.removeWhere((b) => b.age >= _Blast.life);
     rules.tick(d);
     _pump();
     final now = theme;
@@ -203,6 +210,9 @@ class BlockfallFlameGame extends FlameGame {
             ? 'PERFECT +${e.scoreGained}'
             : '+${e.scoreGained}';
         _popups.add(_Popup(label));
+        for (final (r, c) in e.blastCells) {
+          _blasts.add(_Blast(r, c));
+        }
       }
       onEvent?.call(e);
     }
@@ -217,6 +227,7 @@ class BlockfallFlameGame extends FlameGame {
       rules.isGameOver,
       rules.isPaused,
       rules.slowRemaining.ceil(),
+      rules.rushRemaining.ceil(),
       rules.adRefillsUsed,
       for (final n in rules.next) n.type,
       for (final t in PowerUpType.values)
@@ -294,7 +305,7 @@ class BlockfallFlameGame extends FlameGame {
           theme,
           color,
           Rect.fromLTWH(o.$1, o.$2, g.cell, g.cell),
-          prism: well.prismAt(r, c),
+          kind: well.kindAt(r, c),
           pulse: (pulse + c * 0.13 + r * 0.07) % 1.0,
         );
       }
@@ -341,6 +352,36 @@ class BlockfallFlameGame extends FlameGame {
             ..strokeWidth = 2,
         );
       }
+    }
+
+    for (final b in _blasts) {
+      final o = g.cellOrigin(b.row, b.col);
+      if (o == null) continue;
+      drawBlast(
+        canvas,
+        Offset(o.$1 + g.cell / 2, o.$2 + g.cell / 2),
+        g.cell,
+        (b.age / _Blast.life).clamp(0.0, 1.0),
+      );
+    }
+
+    // Gold Rush: a soft golden shimmer over the well (slow sway, no flashing).
+    if (rules.rushActive) {
+      final sway = 0.5 + 0.5 * sin(_time * 1.6);
+      canvas.drawRRect(
+        panel,
+        Paint()
+          ..shader = Gradient.linear(
+            Offset(g.left, g.top),
+            Offset(g.left + g.wellPixelWidth, g.top + g.wellPixelHeight),
+            [
+              Color.fromRGBO(255, 214, 90, 0.05 + 0.07 * sway),
+              Color.fromRGBO(255, 179, 0, 0.12 - 0.06 * sway),
+              Color.fromRGBO(255, 214, 90, 0.05 + 0.07 * sway),
+            ],
+            const [0, 0.5, 1],
+          ),
+      );
     }
 
     for (final p in _popups) {
@@ -394,7 +435,7 @@ class BlockfallFlameGame extends FlameGame {
           theme,
           piece.type!.colorId,
           rect,
-          prism: cell.prism,
+          kind: cell.kind,
           pulse: pulse,
         );
       }
@@ -407,6 +448,15 @@ class _Flash {
   static const double life = 0.3;
   final List<int> rows;
   final bool prism;
+  double age = 0;
+}
+
+/// A cartoon star burst on a cell removed by a Boom block (about 0.5 s).
+class _Blast {
+  _Blast(this.row, this.col);
+  static const double life = 0.5;
+  final int row;
+  final int col;
   double age = 0;
 }
 

@@ -130,6 +130,26 @@ jobs:
           report=build/app/outputs/logs/manifest-merger-release-report.txt
           if [ -f "$report" ]; then grep -n -B2 -A4 'AD_ID' "$report" || echo "AD_ID not mentioned in $report"; else echo "no merger report at $report"; find build/app -name 'manifest-merger*' 2>/dev/null | head; fi
 
+      - name: Find every place the bundle mentions the advertising ID permission
+        if: always()
+        shell: bash
+        run: |
+          # Information only: list each file inside the bundle whose bytes contain the permission name,
+          # plus the permission lines of every release manifest the build produced.
+          aab=build/app/outputs/bundle/release/app-release.aab
+          if [ -f "$aab" ]; then
+            echo "files inside the bundle that contain permission.AD_ID:"
+            unzip -Z1 "$aab" | while read -r f; do
+              n=$(unzip -p "$aab" "$f" 2>/dev/null | grep -a -c 'permission.AD_ID' || true)
+              if [ "${n:-0}" -gt 0 ]; then echo "  $f ($n)"; fi
+            done
+            echo "all uses-permission strings in the base manifest:"
+            unzip -p "$aab" base/manifest/AndroidManifest.xml | strings | grep -a 'permission' | sort -u
+          fi
+          for m in $(find build/app -name AndroidManifest.xml -path '*release*' 2>/dev/null | head -8); do
+            echo "== $m"; grep -n 'permission' "$m" | grep -i 'AD_ID\|ADSERVICES' || echo "  no AD_ID or ADSERVICES permission lines"
+          done
+
       - name: Name the bundle after the app
         shell: bash
         run: |

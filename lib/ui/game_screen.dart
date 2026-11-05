@@ -19,8 +19,10 @@ import '../game/rules/well.dart';
 import '../game/themes/block_theme.dart';
 import 'game_over_panel.dart';
 import 'hud_widgets.dart';
+import 'share_card.dart';
 import 'test_ids.dart';
 import 'theme_fade.dart';
+import 'tip_card.dart';
 
 /// `--dart-define=BLOCKFALL_SEED=<int>` fixes the bag order and prism placement.
 const int kBlockfallSeed = int.fromEnvironment(
@@ -66,6 +68,43 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   int _gameIndex = 0;
   final AudioService _audio = AudioService();
   bool _warned = false;
+  int _gameOvers = 0;
+  String? _overTip;
+  String? _pauseTip;
+  ({String id, String text})? _hint;
+
+  static const _hintTexts = {
+    'prism':
+        'A glowing prism cell doubles its row and pays a coin when it clears.',
+    'boom': 'A Boom block empties the 3x3 area around it when its row clears.',
+    'gold': 'Clear a golden block to start Gold Rush: double points!',
+    'rush': 'Gold Rush! Points are doubled for a few seconds. Clear more rows!',
+  };
+
+  /// Shows the one-time hint [id] if tips are on and it was never shown before.
+  void _maybeHint(String id) {
+    final p = _s!.profile;
+    if (_hint != null || !p.hintDue(id)) return;
+    p.markHintSeen(id);
+    setState(() => _hint = (id: id, text: _hintTexts[id]!));
+  }
+
+  void _hintsForSpawn() {
+    final piece = _flame?.rules.currentPiece;
+    if (piece == null) return;
+    for (final c in piece.cells) {
+      switch (c.kind) {
+        case CellKind.prism:
+          _maybeHint('prism');
+        case CellKind.boom:
+          _maybeHint('boom');
+        case CellKind.gold:
+          _maybeHint('gold');
+        case CellKind.normal:
+          break;
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -140,6 +179,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   void _pause() {
     final f = _flame;
     if (f == null || f.rules.isGameOver || _dialogOpen) return;
+    _pauseTip = _s!.profile.tipsEnabled ? _s!.tips.next() : null;
     setState(() => _paused = true);
     _audio.pauseAmbience();
     _syncPause();
@@ -172,9 +212,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case PieceLocked():
         if (vib) HapticFeedback.lightImpact();
         _warnIfStackHigh();
+      case PieceSpawned():
+        _hintsForSpawn();
       case LinesCleared():
         if (vib) HapticFeedback.mediumImpact();
         _praiseClear(e);
+        if (e.goldBlocks > 0) _maybeHint('rush');
       case LevelUp():
         _audio.voice('awesome');
         // Remember the rotation so a new game (or a new launch) continues it.
@@ -188,6 +231,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           _audio.voice('game_over', variants: 2);
         }
         _persistStock();
+        _gameOvers++;
+        _overTip = s.profile.tipsEnabled && _gameOvers.isEven
+            ? s.tips.next()
+            : null;
+        _hint = null;
         _showGameOver();
       default:
         break;
@@ -310,6 +358,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           Text('Best $best'),
           if (game.score >= best && game.score > 0)
             const Text('New best!', style: TextStyle(color: kGold)),
+          if (_overTip != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: TimedTip(cardKey: TestIds.tipGameOver, text: _overTip!),
+            ),
         ],
         leadButton: game.canRevive
             ? GameOverButton(
@@ -342,6 +395,27 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             fontSize: _kSmallFont,
             padding: _kSmallPadding,
             onPressed: () => Navigator.pop(ctx, 'home'),
+          ),
+          GameOverButton(
+            key: TestIds.gameOverShare,
+            kind: GameOverButtonKind.ghost,
+            icon: Icons.share,
+            semanticLabel: 'Share',
+            fontSize: _kSmallFont,
+            padding: _kSmallPadding,
+            onPressed: () async {
+              final png = await captureShareCard(
+                ctx,
+                ShareCardData(
+                  gameName: s.config.displayName,
+                  headline: 'Score',
+                  big: '${game.score}',
+                  best: best,
+                  theme: flame.theme,
+                ),
+              );
+              await s.share.shareScore(score: game.score, image: png);
+            },
           ),
         ],
       ),
@@ -682,12 +756,36 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         if (leftHanded) holdBox,
       ],
     );
-    return Column(
+    final hint = _hint;
+    return Stack(
       children: [
-        SizedBox(height: l.gap),
-        hud,
-        SizedBox(height: l.gap),
-        Expanded(child: Center(child: well)),
+        Column(
+          children: [
+            SizedBox(height: l.gap),
+            hud,
+            SizedBox(height: l.gap),
+            Expanded(child: Center(child: well)),
+          ],
+        ),
+        // One-time hint card at the bottom of the play area, above the controls and the
+        // power-up buttons (which sit outside this area).
+        if (hint != null)
+          Positioned(
+            left: 8,
+            right: 8,
+            bottom: 4,
+            child: Center(
+              child: TimedTip(
+                key: ValueKey('hint.${hint.id}'),
+                cardKey: TestIds.tipHint,
+                text: hint.text,
+                hideAfter: const Duration(seconds: 4),
+                onClose: () {
+                  if (mounted) setState(() => _hint = null);
+                },
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -767,43 +865,62 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   Widget _buildPauseOverlay() => Positioned.fill(
     child: Container(
       color: const Color(0xE60A1822),
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 14,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          const Text(
-            'PAUSED',
-            style: TextStyle(
-              fontSize: 30,
-              letterSpacing: 6,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
+          if (_pauseTip != null)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 24,
+              child: Center(
+                child: TimedTip(
+                  cardKey: TestIds.tipPause,
+                  text: _pauseTip!,
+                  showAfter: const Duration(seconds: 3),
+                ),
+              ),
             ),
-          ),
-          SizedBox(
-            width: 240,
-            height: 52,
-            child: FilledButton.icon(
-              key: TestIds.gamePauseResume,
-              icon: const Icon(Icons.play_arrow),
-              label: const Text('Resume'),
-              onPressed: _resume,
-            ),
-          ),
-          SizedBox(
-            width: 240,
-            height: 52,
-            child: OutlinedButton.icon(
-              key: TestIds.gamePauseQuit,
-              icon: const Icon(Icons.home),
-              label: const Text('Home'),
-              onPressed: _leave,
-            ),
-          ),
+          _buildPauseButtons(),
         ],
       ),
     ),
+  );
+
+  Widget _buildPauseButtons() => Column(
+    mainAxisSize: MainAxisSize.min,
+    spacing: 14,
+    children: [
+      const Text(
+        'PAUSED',
+        style: TextStyle(
+          fontSize: 30,
+          letterSpacing: 6,
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
+        ),
+      ),
+      SizedBox(
+        width: 240,
+        height: 52,
+        child: FilledButton.icon(
+          key: TestIds.gamePauseResume,
+          icon: const Icon(Icons.play_arrow),
+          label: const Text('Resume'),
+          onPressed: _resume,
+        ),
+      ),
+      SizedBox(
+        width: 240,
+        height: 52,
+        child: OutlinedButton.icon(
+          key: TestIds.gamePauseQuit,
+          icon: const Icon(Icons.home),
+          label: const Text('Home'),
+          onPressed: _leave,
+        ),
+      ),
+    ],
   );
 }
 

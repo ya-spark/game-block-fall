@@ -1,6 +1,6 @@
 # Privacy Policy for Block Fall
 
-_Last updated: 2026-10-28. Developer: Active Mind Craft. Contact: ggadmuser@gmail.com_
+_Last updated: 2026-10-28. Developer: Active Mind Craft. Contact: ggprouser@gmail.com_
 
 Block Fall (package `com.activemindcraft.blockfall`) is a single-player game. It has no account system and no server of its own.
 
@@ -18,6 +18,9 @@ Optional purchases ("Remove Ads", "Coin Pack") are processed by Google Play. We 
 ## Notifications
 If you opt in, the app schedules a local daily-reward reminder on your device. No push service is used and no data is sent anywhere. You can turn it off in Settings or in Android settings.
 
+## Sharing
+If you tap a Share button, Android opens its share sheet with a short text and a picture of your score (game name, score, best score and the current look of the game). You choose the app that receives it. Block Fall itself sends nothing, and the picture contains no name or ID.
+
 ## Analytics, accounts and servers
 We do not run any analytics, crash-reporting or backend service, and we do not ask for your name, email or other personal details. The app does not use Firebase. Only Google AdMob and Google Play (billing) communicate over the network.
 
@@ -31,4 +34,4 @@ Block Fall is not designed for or directed to children under 13, and we do not k
 Internet (ads and purchases), notifications (optional reminder), run at startup (restore the reminder after reboot), advertising ID (AdMob).
 
 ## Changes and contact
-We may update this policy; the date above shows the latest version. Questions: ggadmuser@gmail.com.
+We may update this policy; the date above shows the latest version. Questions: ggprouser@gmail.com.

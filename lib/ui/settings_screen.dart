@@ -123,6 +123,24 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
               _BlockfallSettings(profile: p),
+              KidPanel(
+                child: SwitchListTile(
+                  key: TestIds.settingsTips,
+                  title: const Text('Show tips'),
+                  subtitle: const Text('Small helpful cards now and then'),
+                  value: p.tipsEnabled,
+                  onChanged: p.setTipsEnabled,
+                ),
+              ),
+              if (s.config.share.appLinkEnabled)
+                KidPanel(
+                  child: ListTile(
+                    key: TestIds.settingsShareApp,
+                    leading: const Icon(Icons.share),
+                    title: const Text('Share app'),
+                    onTap: s.share.shareApp,
+                  ),
+                ),
               if (s.ads.privacyOptionsRequired)
                 KidPanel(
                   child: ListTile(

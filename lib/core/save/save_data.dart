@@ -38,6 +38,9 @@ class SaveData {
     this.ambience = 'before_sunrise',
     this.voiceOn = true,
     this.leftHanded = false,
+    this.tipsOff = false,
+    this.tipHomeDay = -1,
+    this.seenHints = const {},
   });
 
   /// Bump when the JSON shape changes and add a step to [SaveMigrator].
@@ -85,6 +88,15 @@ class SaveData {
   /// Left-handed layout: Hold box, control buttons, pause and back mirrored.
   final bool leftHanded;
 
+  /// Tips are turned off ("Don't show tips again" ticked, or the settings switch is off).
+  final bool tipsOff;
+
+  /// Day index on which the home tip of the day was closed.
+  final int tipHomeDay;
+
+  /// One-time hints already shown.
+  final Set<String> seenHints;
+
   int powerUpCount(String id) => powerUps[id] ?? 0;
 
   SaveData copyWith({
@@ -110,6 +122,9 @@ class SaveData {
     String? ambience,
     bool? voiceOn,
     bool? leftHanded,
+    bool? tipsOff,
+    int? tipHomeDay,
+    Set<String>? seenHints,
   }) => SaveData(
     coins: coins ?? this.coins,
     bestScore: bestScore ?? this.bestScore,
@@ -133,6 +148,9 @@ class SaveData {
     ambience: ambience ?? this.ambience,
     voiceOn: voiceOn ?? this.voiceOn,
     leftHanded: leftHanded ?? this.leftHanded,
+    tipsOff: tipsOff ?? this.tipsOff,
+    tipHomeDay: tipHomeDay ?? this.tipHomeDay,
+    seenHints: seenHints ?? this.seenHints,
   );
 
   Map<String, Object?> toJson() => {
@@ -159,6 +177,9 @@ class SaveData {
     'ambience': ambience,
     'voiceOn': voiceOn,
     'leftHanded': leftHanded,
+    'tipsOff': tipsOff,
+    'tipHomeDay': tipHomeDay,
+    'seenHints': seenHints.toList()..sort(),
   };
 
   /// Expects JSON already migrated to [currentVersion].
@@ -192,6 +213,9 @@ class SaveData {
     ambience: j['ambience'] as String? ?? 'before_sunrise',
     voiceOn: j['voiceOn'] as bool? ?? true,
     leftHanded: j['leftHanded'] as bool? ?? false,
+    tipsOff: j['tipsOff'] as bool? ?? false,
+    tipHomeDay: (j['tipHomeDay'] as num?)?.toInt() ?? -1,
+    seenHints: {...?(j['seenHints'] as List?)?.cast<String>()},
   );
 
   static Map<String, int> _powerUps(Object? o) {

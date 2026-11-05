@@ -18,6 +18,9 @@ import 'remote_config/remote_config_service.dart';
 import 'save/legacy_prefs_migration.dart';
 import 'save/play_games_save.dart';
 import 'save/save_service.dart';
+import 'share/share_service.dart';
+import 'share/system_share_service.dart';
+import 'tips/tip_service.dart';
 
 /// Composition root: every service the game and UI use, behind interfaces.
 /// This is the ONLY place that picks vendor implementations.
@@ -34,7 +37,9 @@ class Services {
     required this.analytics,
     required this.remoteConfig,
     required this.profile,
-  });
+    required this.share,
+    TipService? tips,
+  }) : tips = tips ?? TipService();
 
   final AppConfig config;
   final ProductCatalog catalog;
@@ -47,6 +52,8 @@ class Services {
   final AnalyticsService analytics;
   final RemoteConfigService remoteConfig;
   final ProfileStore profile;
+  final ShareService share;
+  final TipService tips;
 
   /// Production wiring (Android v1).
   static Future<Services> create({
@@ -86,6 +93,11 @@ class Services {
       analytics: const NoopAnalyticsService(),
       remoteConfig: const NoopRemoteConfigService(),
       profile: profile,
+      share: SystemShareService(
+        gameName: config.displayName,
+        storeLink: config.storeLink,
+        appLinkEnabled: config.share.appLinkEnabled,
+      ),
     );
     s.wirePurchases();
     return s;

@@ -19,6 +19,8 @@ Manifest permissions: INTERNET, POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED, AD_I
 | Can users request deletion? | The developer holds no user data. Local data is removed by uninstalling or clearing app data; the advertising ID can be reset or deleted in Android settings |
 | Purchases | Processed by Google Play Billing; the app never receives payment details |
 | Notifications | Optional local reminder only; no push service, no data leaves the device |
+| Sharing | Optional. The player starts it and picks the target app in the Android share sheet (`share_plus`); the app sends nothing itself and collects nothing. The share picture holds only the game name, the scores and the current look of the game, no name or id |
+| Public contact email | ggprouser@gmail.com |
 | Follows Families Policy? | No. The app is not designed for children |
 
 Play Console declarations:

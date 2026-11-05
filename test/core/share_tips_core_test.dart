@@ -1,11 +1,20 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:blockfall/core/config/app_config.dart';
 import 'package:blockfall/core/share/share_service.dart';
 import 'package:blockfall/core/tips/tip_service.dart';
 import 'package:blockfall/game/tips.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+AppConfig configWith(String mode, String url) {
+  final base = File('app.config.yaml').readAsStringSync();
+  final cut = base.indexOf('\nshare:');
+  final end = base.indexOf('\n# Retention');
+  return AppConfig.fromYamlString(
+    '${base.substring(0, cut)}\nshare:\n  link_mode: $mode\n'
+    '  internal_test_url: "$url"\n${base.substring(end)}',
+  );
+}
 
 void main() {
   group('tips', () {
@@ -18,24 +27,6 @@ void main() {
       expect(gameTips.toSet().length, gameTips.length);
     });
 
-    test('the same tip never appears twice in a row', () {
-      for (var seed = 0; seed < 20; seed++) {
-        final svc = TipService(random: Random(seed));
-        String? last;
-        for (var i = 0; i < gameTips.length * 6; i++) {
-          final t = svc.next();
-          expect(t, isNot(last), reason: 'seed $seed, draw $i');
-          last = t;
-        }
-      }
-    });
-
-    test('a bag deals every tip once before repeating', () {
-      final svc = TipService(random: Random(3));
-      final bag = {for (var i = 0; i < gameTips.length; i++) svc.next()};
-      expect(bag.length, gameTips.length);
-    });
-
     test('tip of the day is stable per day and changes by day', () {
       final svc = TipService();
       expect(svc.tipOfTheDay(100), svc.tipOfTheDay(100));
@@ -44,45 +35,54 @@ void main() {
   });
 
   group('share texts', () {
-    test(
-      'without the link flag no link is added and Share app is a no-op',
-      () async {
-        final f = FakeShareService();
-        await f.shareScore(score: 42);
-        await f.shareAchievement(title: 'First Row');
-        await f.shareApp();
-        expect(f.sent.map((e) => e.text), [
-          'I scored 42 in Block Fall! Can you beat it?',
-          'I unlocked "First Row" in Block Fall!',
-        ]);
-      },
-    );
+    test('without a link no link is added and Share app is a no-op', () async {
+      final f = FakeShareService();
+      await f.shareScore(score: 42);
+      await f.shareAchievement(title: 'First Row');
+      await f.shareApp();
+      expect(f.sent.map((e) => e.text), [
+        'This is my high score in Block Fall: 42. Can you beat it?',
+        'I unlocked "First Row" in Block Fall! Can you beat it?',
+      ]);
+    });
 
-    test('with the link flag the store link is appended', () async {
-      final f = FakeShareService(
-        appLinkEnabled: true,
-        storeLink: 'https://play.google.com/store/apps/details?id=x.y',
-      );
+    test('with a link it follows the message on a new line', () async {
+      final f = FakeShareService(link: 'https://example.com/x');
       await f.shareScore(score: 7);
       await f.shareAchievement(title: 'First Row');
       await f.shareApp();
-      const link = ' https://play.google.com/store/apps/details?id=x.y';
+      const link = '\nhttps://example.com/x';
       expect(f.sent.map((e) => e.text), [
-        'I scored 7 in Block Fall! Can you beat it?$link',
-        'I unlocked "First Row" in Block Fall!$link',
+        'This is my high score in Block Fall: 7. Can you beat it?$link',
+        'I unlocked "First Row" in Block Fall! Can you beat it?$link',
         'Try Block Fall!$link',
       ]);
     });
   });
 
-  test('config: share link is off and the store link uses the package', () {
-    final c = AppConfig.fromYamlString(
-      File('app.config.yaml').readAsStringSync(),
-    );
-    expect(c.share.appLinkEnabled, isFalse);
-    expect(
-      c.storeLink,
-      'https://play.google.com/store/apps/details?id=${c.packageName}',
-    );
+  group('share link config', () {
+    test('default is internal_test with the internal test URL', () {
+      final c = AppConfig.fromYamlString(
+        File('app.config.yaml').readAsStringSync(),
+      );
+      expect(c.share.linkMode, ShareLinkMode.internalTest);
+      expect(
+        c.shareLink,
+        'https://play.google.com/apps/internaltest/4700823638704685278',
+      );
+    });
+
+    test('store mode uses the Play Store page of the package', () {
+      final c = configWith('store', 'https://example.com/t');
+      expect(
+        c.shareLink,
+        'https://play.google.com/store/apps/details?id=${c.packageName}',
+      );
+    });
+
+    test('internal_test with an empty URL, and off, give no link', () {
+      expect(configWith('internal_test', '').shareLink, isNull);
+      expect(configWith('off', 'https://example.com/t').shareLink, isNull);
+    });
   });
 }

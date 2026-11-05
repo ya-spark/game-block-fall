@@ -1,11 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../core/services.dart';
 import 'test_ids.dart';
 
-/// A small tip card with a "Don't show tips again" checkbox and a Close (X) button.
+/// The content of the home tip dialog: a small tip card with a "Don't show tips again" checkbox and a Close (X) button.
 /// Close alone hides this tip for now; with the box ticked it turns tips off everywhere
 /// (the same saved profile value as the Settings "Show tips" switch).
 class TipCard extends StatefulWidget {
@@ -26,91 +24,6 @@ class TipCard extends StatefulWidget {
 
   @override
   State<TipCard> createState() => _TipCardState();
-}
-
-/// A [TipCard] that hides itself once closed, can fade in after [showAfter] and can hide
-/// itself again after [hideAfter] (one-time hints).
-class TimedTip extends StatefulWidget {
-  const TimedTip({
-    super.key,
-    required this.text,
-    this.cardKey,
-    this.title,
-    this.showAfter = Duration.zero,
-    this.hideAfter,
-    this.onClose,
-  });
-
-  /// Test ID of the visible card (absent while the tip is not shown).
-  final Key? cardKey;
-
-  final String text;
-  final String? title;
-  final Duration showAfter;
-  final Duration? hideAfter;
-  final VoidCallback? onClose;
-
-  @override
-  State<TimedTip> createState() => _TimedTipState();
-}
-
-class _TimedTipState extends State<TimedTip> {
-  Timer? _show;
-  Timer? _hide;
-  bool _visible = false;
-  bool _closed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.showAfter == Duration.zero) {
-      _visible = true;
-      _armHide();
-    } else {
-      _show = Timer(widget.showAfter, () {
-        if (!mounted) return;
-        setState(() => _visible = true);
-        _armHide();
-      });
-    }
-  }
-
-  void _armHide() {
-    final d = widget.hideAfter;
-    if (d == null) return;
-    _hide = Timer(d, () {
-      if (mounted) {
-        setState(() => _closed = true);
-        widget.onClose?.call();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _show?.cancel();
-    _hide?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_closed || !_visible) return const SizedBox.shrink();
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 400),
-      builder: (_, v, child) => Opacity(opacity: v, child: child),
-      child: TipCard(
-        key: widget.cardKey,
-        title: widget.title,
-        text: widget.text,
-        onClose: () {
-          setState(() => _closed = true);
-          widget.onClose?.call();
-        },
-      ),
-    );
-  }
 }
 
 class _TipCardState extends State<TipCard> {

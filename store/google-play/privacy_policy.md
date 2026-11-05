@@ -19,7 +19,7 @@ Optional purchases ("Remove Ads", "Coin Pack") are processed by Google Play. We 
 If you opt in, the app schedules a local daily-reward reminder on your device. No push service is used and no data is sent anywhere. You can turn it off in Settings or in Android settings.
 
 ## Sharing
-If you tap a Share button, Android opens its share sheet with a short text and a picture of your score (game name, score, best score and the current look of the game). You choose the app that receives it. Block Fall itself sends nothing, and the picture contains no name or ID.
+If you tap a Share button, Android opens its share sheet with a short text and a picture of your score (game name, score, best score and the current look of the game). The text can include a link to the game's Google Play page. You choose the app that receives it. Block Fall itself sends nothing, and the picture contains no name or ID.
 
 ## Analytics, accounts and servers
 We do not run any analytics, crash-reporting or backend service, and we do not ask for your name, email or other personal details. The app does not use Firebase. Only Google AdMob and Google Play (billing) communicate over the network.

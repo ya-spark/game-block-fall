@@ -50,6 +50,8 @@ abstract final class TestIds {
   static const gameOverHome = Key('game.over.home');
   static const gameOverShare = Key('game.over.share');
   static const gameOverScore = Key('game.over.score');
+  static const gameOverPanel = Key('game.over.panel');
+  static const gameOverView = Key('game.over.view');
   static const gamePauseResume = Key('game.pause.resume');
   static const gamePauseQuit = Key('game.pause.quit');
   // On-screen controls (Buttons scheme)
@@ -91,10 +93,7 @@ abstract final class TestIds {
   static const settingsShareApp = Key('settings.shareApp');
 
   // Tips
-  static const tipGameOver = Key('tip.gameover');
-  static const tipPause = Key('tip.pause');
   static const tipHome = Key('tip.home');
-  static const tipHint = Key('tip.hint');
   static const tipClose = Key('tip.close');
   static const tipDontShow = Key('tip.dontShow');
 }

@@ -95,8 +95,7 @@ class Services {
       profile: profile,
       share: SystemShareService(
         gameName: config.displayName,
-        storeLink: config.storeLink,
-        appLinkEnabled: config.share.appLinkEnabled,
+        link: config.shareLink,
       ),
     );
     s.wirePurchases();

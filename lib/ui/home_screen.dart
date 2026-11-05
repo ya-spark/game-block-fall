@@ -21,6 +21,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowTip());
+  }
+
+  /// The tip of the day: one dialog the first time Home is shown each day (never in play).
+  Future<void> _maybeShowTip() async {
+    if (!mounted) return;
+    final s = ServicesScope.of(context);
+    final profile = s.profile;
+    if (!profile.homeTipPending) return;
+    // Counts as shown for today as soon as it opens.
+    await profile.closeHomeTip();
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: TipCard(
+          key: TestIds.tipHome,
+          title: 'Tip of the day',
+          text: s.tips.tipOfTheDay(profile.today),
+          onClose: () => Navigator.of(ctx).pop(),
+        ),
+      ),
+    );
   }
 
   @override
@@ -120,13 +145,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             ),
                         ],
                       ),
-                      if (profile.homeTipPending)
-                        TipCard(
-                          key: TestIds.tipHome,
-                          title: 'Tip of the day',
-                          text: s.tips.tipOfTheDay(profile.today),
-                          onClose: profile.closeHomeTip,
-                        ),
                       const SizedBox(height: 8),
                       MenuButton(
                         key: TestIds.homePlay,

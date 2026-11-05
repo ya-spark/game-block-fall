@@ -132,7 +132,7 @@ class SettingsScreen extends StatelessWidget {
                   onChanged: p.setTipsEnabled,
                 ),
               ),
-              if (s.config.share.appLinkEnabled)
+              if (s.config.shareLink != null)
                 KidPanel(
                   child: ListTile(
                     key: TestIds.settingsShareApp,

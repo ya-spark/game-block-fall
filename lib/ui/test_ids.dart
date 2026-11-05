@@ -19,6 +19,8 @@ abstract final class TestIds {
   static const gameWidget = Key('game.widget');
   static const gameWell = Key('game.well');
   static const gameScore = Key('game.score');
+  static const gameScoreLabel = Key('game.score_label');
+  static const gameBestText = Key('game.best_text');
   static const gameBest = Key('game.best');
   static const gameLevel = Key('game.level');
 

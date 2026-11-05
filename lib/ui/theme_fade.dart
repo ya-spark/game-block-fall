@@ -64,9 +64,35 @@ class ThemeBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ThemeFade(
     theme: theme,
-    builder: (context, from, to, t) =>
-        CustomPaint(painter: _BackgroundPainter(from, to, t), child: child),
+    builder: (context, from, to, t) => HudColors(
+      text: Color.lerp(from.hudText, to.hudText, t)!,
+      subtle: Color.lerp(from.hudSubtle, to.hudSubtle, t)!,
+      child: CustomPaint(
+        painter: _BackgroundPainter(from, to, t),
+        child: child,
+      ),
+    ),
   );
+}
+
+/// HUD text colours of the current theme, blended during the theme cross-fade.
+class HudColors extends InheritedWidget {
+  const HudColors({
+    super.key,
+    required this.text,
+    required this.subtle,
+    required super.child,
+  });
+
+  final Color text;
+  final Color subtle;
+
+  static HudColors of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<HudColors>()!;
+
+  @override
+  bool updateShouldNotify(HudColors old) =>
+      old.text != text || old.subtle != subtle;
 }
 
 class _BackgroundPainter extends CustomPainter {

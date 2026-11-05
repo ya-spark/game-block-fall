@@ -24,6 +24,9 @@ class BlockTheme {
     required this.palette,
     required this.wellColor,
     required this.gridLine,
+    required this.backgroundTop,
+    this.hudText = const Color(0xFFFFFFFF),
+    this.hudSubtle = const Color(0xFF7FB7BD),
     required this.paintBackground,
     required this.paintSkin,
   }) : assert(palette.length == colorCount);
@@ -36,6 +39,15 @@ class BlockTheme {
   /// Fill of the well panel and the colour of its grid lines.
   final Color wellColor;
   final Color gridLine;
+
+  /// Top colour of the background gradient (what the HUD text must contrast with).
+  final Color backgroundTop;
+
+  /// HUD text drawn straight on the background (score, streak, combo, rush chip, best).
+  final Color hudText;
+
+  /// Secondary HUD text (the "SCORE" label).
+  final Color hudSubtle;
 
   /// Paints the whole-screen background.
   final void Function(Canvas canvas, Size size) paintBackground;
@@ -108,6 +120,7 @@ class BlockTheme {
     ],
     wellColor: const Color(0xE608141B),
     gridLine: const Color(0x0DFFFFFF),
+    backgroundTop: const Color(0xFF35C2D8),
     paintBackground: (c, s) => _radial(c, s, const [
       Color(0xFF35C2D8),
       Color(0xFF2C73E0),
@@ -129,6 +142,7 @@ class BlockTheme {
     ],
     wellColor: const Color(0xE62E1A10),
     gridLine: const Color(0x22FFD9A8),
+    backgroundTop: const Color(0xFF6B4332),
     paintBackground: _cakesBackground,
     paintSkin: _cakeSkin,
   );
@@ -146,6 +160,7 @@ class BlockTheme {
     ],
     wellColor: const Color(0xE60C2A1B),
     gridLine: const Color(0x22A8E6B8),
+    backgroundTop: const Color(0xFF3E9A5A),
     paintBackground: (c, s) => _linear(c, s, const [
       Color(0xFF3E9A5A),
       Color(0xFF1F6B3F),
@@ -167,6 +182,9 @@ class BlockTheme {
     ],
     wellColor: const Color(0xE6E9B8D0),
     gridLine: const Color(0x55FFFFFF),
+    backgroundTop: const Color(0xFFFFB7D5),
+    hudText: const Color(0xFF5B2A55),
+    hudSubtle: const Color(0xFF6E3A68),
     paintBackground: (c, s) => _linear(c, s, const [
       Color(0xFFFFB7D5),
       Color(0xFFFFD9EC),
@@ -188,6 +206,7 @@ class BlockTheme {
     ],
     wellColor: const Color(0xE6082545),
     gridLine: const Color(0x2200E5FF),
+    backgroundTop: const Color(0xFF1B6FB5),
     paintBackground: _oceanBackground,
     paintSkin: _shellSkin,
   );
@@ -205,6 +224,7 @@ class BlockTheme {
     ],
     wellColor: const Color(0xE6130D2E),
     gridLine: const Color(0x22B9A7FF),
+    backgroundTop: const Color(0xFF2A1659),
     paintBackground: _spaceBackground,
     paintSkin: _planetSkin,
   );

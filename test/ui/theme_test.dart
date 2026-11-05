@@ -10,8 +10,10 @@ import 'package:blockfall/game/rules/well.dart';
 import 'package:blockfall/game/flame/blockfall_flame_game.dart';
 import 'package:blockfall/game/themes/block_theme.dart';
 import 'package:blockfall/ui/test_ids.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../helpers/fake_services.dart';
 import '../helpers/game_harness.dart';
 
 void main() {
@@ -113,6 +115,55 @@ void main() {
     // The cross-fade runs 1.5 s and never blocks anything.
     await settle(tester, 20);
     expect(semValue(tester, TestIds.gameTheme), 'cakes');
+    handle.dispose();
+  });
+
+  group('hud text', () {
+    double lum(Color c) {
+      double ch(double v) =>
+          v <= 0.03928 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4).toDouble();
+      return 0.2126 * ch(c.r) + 0.7152 * ch(c.g) + 0.0722 * ch(c.b);
+    }
+
+    double contrast(Color a, Color b) {
+      final la = lum(a), lb = lum(b);
+      return (max(la, lb) + 0.05) / (min(la, lb) + 0.05);
+    }
+
+    // Candy (pale background) must reach WCAG AA. The dark themes keep white and only
+    // have a regression floor.
+    test('candy hudText and hudSubtle reach 4.5 on the top colour', () {
+      final t = BlockTheme.candy;
+      expect(contrast(t.hudText, t.backgroundTop), greaterThanOrEqualTo(4.5));
+      expect(contrast(t.hudSubtle, t.backgroundTop), greaterThanOrEqualTo(4.5));
+    });
+
+    for (final t in BlockTheme.all) {
+      test('${t.id} hudText never gets harder to read than 2.0', () {
+        expect(contrast(t.hudText, t.backgroundTop), greaterThanOrEqualTo(2.0));
+      });
+    }
+  });
+
+  testWidgets('candy: the SCORE label, score and best use the Candy colours', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    final s = await buildFakeServices();
+    await s.profile.setThemeIndex(3);
+    final g = BlockfallGame(random: Random(1));
+    await openGame(tester, g, services: s);
+    expect(semValue(tester, TestIds.gameTheme), 'candy');
+    Color colorOf(Key k) => tester.widget<Text>(find.byKey(k)).style!.color!;
+    expect(colorOf(TestIds.gameScoreLabel), BlockTheme.candy.hudSubtle);
+    expect(colorOf(TestIds.gameBestText), BlockTheme.candy.hudText);
+    final score = tester.widget<Text>(
+      find.descendant(
+        of: find.byKey(TestIds.gameScore),
+        matching: find.text('0'),
+      ),
+    );
+    expect(score.style!.color, BlockTheme.candy.hudText);
     handle.dispose();
   });
 }

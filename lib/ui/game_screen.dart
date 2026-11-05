@@ -1008,7 +1008,11 @@ class _BestChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             '$best',
-            style: const TextStyle(color: kGold, fontWeight: FontWeight.bold),
+            key: TestIds.gameBestText,
+            style: TextStyle(
+              color: HudColors.of(context).text,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -1038,7 +1042,7 @@ class _StreakBar extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: DefaultTextStyle(
-        style: const TextStyle(color: Color(0xFFCFE9EC), fontSize: 13),
+        style: TextStyle(color: HudColors.of(context).text, fontSize: 13),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           spacing: 14,
@@ -1082,8 +1086,8 @@ class _StreakBar extends StatelessWidget {
                       ),
                       child: Text(
                         'GOLD RUSH x2 · ${rushSeconds}s',
-                        style: const TextStyle(
-                          color: Color(0xFFFFE08A),
+                        style: TextStyle(
+                          color: HudColors.of(context).text,
                           fontWeight: FontWeight.w700,
                         ),
                       ),

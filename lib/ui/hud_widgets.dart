@@ -243,21 +243,22 @@ class ScorePill extends StatelessWidget {
         children: [
           Text(
             '$score',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: HudColors.of(context).text,
               fontSize: 28,
               height: 1.1,
               fontWeight: FontWeight.w800,
               letterSpacing: 1,
             ),
           ),
-          const Text(
+          Text(
             'SCORE',
+            key: TestIds.gameScoreLabel,
             style: TextStyle(
               fontSize: 9,
               height: 1.1,
               letterSpacing: 3,
-              color: kMuted,
+              color: HudColors.of(context).subtle,
             ),
           ),
         ],

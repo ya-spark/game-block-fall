@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
-"""Draws the Blockfall icon, feature graphic and launcher icons with Pillow (original art)."""
+"""Draws the Block Fall icon, feature graphic and launcher icons with Pillow (original art)."""
 import os
+import sys
+
 from PIL import Image, ImageDraw, ImageFilter
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from icon_art import build as build_icon  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 COLORS = {"I": (0, 220, 235), "O": (255, 200, 40), "T": (150, 90, 235), "S": (60, 210, 110),
@@ -55,7 +60,7 @@ def scene(w, h, cell, ox, oy):
 def main():
     out = os.path.join(ROOT, "store", "google-play", "graphics")
     cell = 64
-    icon = scene(512, 512, cell, (512 - 6 * cell) // 2, 64 - 6)
+    icon = build_icon()  # falling T piece, speed streaks, sparkles
     icon.convert("RGB").save(os.path.join(out, "icon-512.png"))
     # feature graphic
     fg = scene(1024, 500, 52, 80, 70).convert("RGBA")

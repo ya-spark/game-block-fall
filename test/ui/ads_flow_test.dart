@@ -20,6 +20,8 @@ Future<int> dropUntilGameOver(BlockfallBot bot, {int max = 80}) async {
     n++;
   }
   expect(bot.isGameOver, isTrue, reason: 'game over within $max drops');
+  await bot.tester.pump(const Duration(milliseconds: 100));
+  await settleGameOver(bot.tester);
   return n;
 }
 

@@ -185,7 +185,7 @@ abstract final class BlockfallScenario {
     await openingMoves(tester, bot);
     await playToGameOver(tester, bot);
     expect(find.byKey(TestIds.gameOverDialog), findsOneWidget);
-    await bot.pumpFor(const Duration(milliseconds: 200));
+    await bot.pumpFor(const Duration(milliseconds: 1100));
     expect(int.parse(bot.value(TestIds.gameOverScore)), greaterThan(0));
     await bot.tap(TestIds.gameOverHome);
     await bot.pumpFor(const Duration(seconds: 1));

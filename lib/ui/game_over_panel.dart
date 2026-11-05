@@ -39,6 +39,17 @@ class GameOverPanel extends StatefulWidget {
     Shadow(color: Color(0x66000000), blurRadius: 4, offset: Offset(0, 1)),
   ];
 
+  /// Ease-in timeline: 0.3 s hold while the scene dims to about 40 %, then 0.7 s fade and
+  /// 24 px slide up (ease-out cubic). Buttons are tappable once it is done. With reduce motion:
+  /// a single 0.2 s fade.
+  static const Duration easeInDuration = Duration(milliseconds: 1000);
+  static const Duration reducedDuration = Duration(milliseconds: 200);
+  static const double holdFraction = 0.3;
+  static const double slideDistance = 24;
+
+  /// Black scrim opacity at the end of the hold (the scene is left at about 40 %).
+  static const double dimOpacity = 0.6;
+
   /// Solid dark surface at about 90 % opacity.
   static const Color surface = Color(0xE6140B2B);
 
@@ -46,11 +57,56 @@ class GameOverPanel extends StatefulWidget {
   State<GameOverPanel> createState() => _GameOverPanelState();
 }
 
-class _GameOverPanelState extends State<GameOverPanel> {
+class _GameOverPanelState extends State<GameOverPanel>
+    with SingleTickerProviderStateMixin {
   bool _hidden = false;
+  late final AnimationController _c = AnimationController(vsync: this);
+  bool _started = false;
+  bool _reduce = false;
 
   @override
-  Widget build(BuildContext context) {
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    _reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    _c.duration = _reduce
+        ? GameOverPanel.reducedDuration
+        : GameOverPanel.easeInDuration;
+    _c.forward();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  /// Panel progress 0..1 (fade and slide) at controller value [v].
+  double _panelT(double v) {
+    if (_reduce) return v;
+    final hold = GameOverPanel.holdFraction;
+    return Curves.easeOutCubic.transform(
+      ((v - hold) / (1 - hold)).clamp(0.0, 1.0),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _c,
+    builder: (context, _) => _buildAnimated(context),
+  );
+
+  Widget _buildAnimated(BuildContext context) {
+    final v = _c.value;
+    final settled = _c.isCompleted;
+    // The panel exists from the first frame of the fade (after the hold).
+    final showCard = _reduce || v >= GameOverPanel.holdFraction;
+    final t = _panelT(v);
+    final dim = _reduce
+        ? 0.0
+        : (v / GameOverPanel.holdFraction).clamp(0.0, 1.0) *
+              GameOverPanel.dimOpacity;
     final card = Container(
       key: widget.panelKey,
       constraints: const BoxConstraints(maxWidth: 420),
@@ -129,6 +185,19 @@ class _GameOverPanelState extends State<GameOverPanel> {
       type: MaterialType.transparency,
       child: Stack(
         children: [
+          // Dims the frozen scene to about 40 %; lifted while the board is being viewed.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: _hidden ? 0 : 1,
+                duration: const Duration(milliseconds: 200),
+                child: ColoredBox(
+                  key: const Key('game.over.scrim'),
+                  color: Color.fromRGBO(0, 0, 0, dim),
+                ),
+              ),
+            ),
+          ),
           // Tap anywhere brings the panel back.
           if (_hidden)
             Positioned.fill(
@@ -144,30 +213,60 @@ class _GameOverPanelState extends State<GameOverPanel> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                 child: Stack(
                   children: [
-                    IgnorePointer(
-                      ignoring: _hidden,
-                      child: AnimatedOpacity(
-                        opacity: _hidden ? 0 : 1,
-                        duration: const Duration(milliseconds: 200),
-                        child: card,
-                      ),
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: IconButton(
-                        key: widget.viewKey,
-                        tooltip: _hidden ? 'Show panel' : 'View board',
-                        style: IconButton.styleFrom(
-                          backgroundColor: const Color(0xFF3A2A5C),
-                          foregroundColor: Colors.white,
+                    if (showCard)
+                      IgnorePointer(
+                        ignoring: _hidden || !settled,
+                        child: Opacity(
+                          opacity: t,
+                          child: Transform.translate(
+                            offset: Offset(
+                              0,
+                              _reduce
+                                  ? 0
+                                  : (1 - t) * GameOverPanel.slideDistance,
+                            ),
+                            child: AnimatedOpacity(
+                              opacity: _hidden ? 0 : 1,
+                              duration: const Duration(milliseconds: 200),
+                              child: card,
+                            ),
+                          ),
                         ),
-                        icon: Icon(
-                          _hidden ? Icons.visibility_off : Icons.visibility,
-                        ),
-                        onPressed: () => setState(() => _hidden = !_hidden),
                       ),
-                    ),
+                    if (showCard)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: IgnorePointer(
+                          ignoring: !settled,
+                          child: Opacity(
+                            opacity: t,
+                            child: Transform.translate(
+                              offset: Offset(
+                                0,
+                                _reduce
+                                    ? 0
+                                    : (1 - t) * GameOverPanel.slideDistance,
+                              ),
+                              child: IconButton(
+                                key: widget.viewKey,
+                                tooltip: _hidden ? 'Show panel' : 'View board',
+                                style: IconButton.styleFrom(
+                                  backgroundColor: const Color(0xFF3A2A5C),
+                                  foregroundColor: Colors.white,
+                                ),
+                                icon: Icon(
+                                  _hidden
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                ),
+                                onPressed: () =>
+                                    setState(() => _hidden = !_hidden),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

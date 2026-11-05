@@ -245,6 +245,7 @@ class ScorePill extends StatelessWidget {
             '$score',
             style: TextStyle(
               color: HudColors.of(context).text,
+              shadows: HudColors.of(context).shadows,
               fontSize: 28,
               height: 1.1,
               fontWeight: FontWeight.w800,
@@ -259,6 +260,7 @@ class ScorePill extends StatelessWidget {
               height: 1.1,
               letterSpacing: 3,
               color: HudColors.of(context).subtle,
+              shadows: HudColors.of(context).shadows,
             ),
           ),
         ],

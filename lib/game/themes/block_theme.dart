@@ -16,6 +16,11 @@ const int kThemeFadeMs = 1500;
 /// Colours per theme: one per piece type (colour ids 1..7 stored in the well).
 const int colorCount = 7;
 
+/// Soft dark shadow (about 2 px blur, 40 % black) that keeps HUD text at 4.5:1 on bright backgrounds.
+const List<Shadow> kHudTextShadow = [
+  Shadow(color: Color(0x66000000), blurRadius: 2),
+];
+
 /// One theme = background + block skin + 7 colours + well and grid colours.
 /// Everything is drawn in code. The well only stores a colour id and a prism flag per cell.
 class BlockTheme {
@@ -27,6 +32,7 @@ class BlockTheme {
     required this.backgroundTop,
     this.hudText = const Color(0xFFFFFFFF),
     this.hudSubtle = const Color(0xFF7FB7BD),
+    this.hudShadows = const [],
     required this.paintBackground,
     required this.paintSkin,
   }) : assert(palette.length == colorCount);
@@ -48,6 +54,9 @@ class BlockTheme {
 
   /// Secondary HUD text (the "SCORE" label).
   final Color hudSubtle;
+
+  /// Soft text shadow for the HUD texts (empty on themes that do not need it).
+  final List<Shadow> hudShadows;
 
   /// Paints the whole-screen background.
   final void Function(Canvas canvas, Size size) paintBackground;
@@ -109,6 +118,7 @@ class BlockTheme {
 
   static final BlockTheme gems = BlockTheme(
     id: 'gems',
+    hudShadows: kHudTextShadow,
     palette: const [
       Color(0xFF39D0F2), // cyan
       Color(0xFFFFC145), // gold
@@ -195,6 +205,7 @@ class BlockTheme {
 
   static final BlockTheme ocean = BlockTheme(
     id: 'ocean',
+    hudShadows: kHudTextShadow,
     palette: const [
       Color(0xFFF7C6D0), // pink pearl
       Color(0xFFFFE9B0), // sand

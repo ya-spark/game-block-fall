@@ -33,6 +33,7 @@ Future<({int score, int pieces, int lines})> playSeeded(
   expect(g.coinsFromPrisms, inInclusiveRange(0, 40));
   expect(find.byKey(TestIds.gameOverDialog), findsOneWidget);
   await settle(tester, 2);
+  await settleGameOver(tester);
   expect(semValue(tester, TestIds.gameOverScore), '${g.score}');
 
   // Leaving records the game once.

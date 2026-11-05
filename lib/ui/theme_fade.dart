@@ -67,6 +67,7 @@ class ThemeBackground extends StatelessWidget {
     builder: (context, from, to, t) => HudColors(
       text: Color.lerp(from.hudText, to.hudText, t)!,
       subtle: Color.lerp(from.hudSubtle, to.hudSubtle, t)!,
+      shadows: t < 0.5 ? from.hudShadows : to.hudShadows,
       child: CustomPaint(
         painter: _BackgroundPainter(from, to, t),
         child: child,
@@ -81,18 +82,22 @@ class HudColors extends InheritedWidget {
     super.key,
     required this.text,
     required this.subtle,
+    this.shadows = const [],
     required super.child,
   });
 
   final Color text;
   final Color subtle;
 
+  /// Soft text shadow of the current theme (empty when the theme needs none).
+  final List<Shadow> shadows;
+
   static HudColors of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<HudColors>()!;
 
   @override
   bool updateShouldNotify(HudColors old) =>
-      old.text != text || old.subtle != subtle;
+      old.text != text || old.subtle != subtle || old.shadows != shadows;
 }
 
 class _BackgroundPainter extends CustomPainter {

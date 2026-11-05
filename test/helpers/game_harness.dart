@@ -35,6 +35,12 @@ Future<void> settle(WidgetTester tester, [int frames = 4]) async {
   }
 }
 
+/// Lets the game over panel finish its ease-in (1 s) when it is showing.
+Future<void> settleGameOver(WidgetTester tester) async {
+  if (find.byKey(TestIds.gameOverDialog).evaluate().isEmpty) return;
+  await tester.pump(const Duration(milliseconds: 1100));
+}
+
 Future<Services> openGame(
   WidgetTester tester,
   BlockfallGame game, {
@@ -56,6 +62,7 @@ Future<Services> openGame(
     ),
   );
   await settle(tester);
+  await settleGameOver(tester);
   return s;
 }
 
@@ -68,4 +75,5 @@ double wellCell(WidgetTester tester) =>
 Future<void> tapKey(WidgetTester tester, Key k) async {
   await tester.tap(find.byKey(k));
   await settle(tester, 4);
+  await settleGameOver(tester);
 }

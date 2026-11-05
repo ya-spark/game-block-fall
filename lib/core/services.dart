@@ -12,6 +12,7 @@ import 'leaderboard/leaderboard_service.dart';
 import 'notifications/local_notification_service.dart';
 import 'notifications/notification_service.dart';
 import 'profile/profile_store.dart';
+import 'purchase/parent_gate.dart';
 import 'purchase/play_purchase_service.dart';
 import 'purchase/purchase_service.dart';
 import 'remote_config/remote_config_service.dart';
@@ -39,7 +40,9 @@ class Services {
     required this.profile,
     required this.share,
     TipService? tips,
-  }) : tips = tips ?? TipService();
+    ParentGate? parentGate,
+  }) : tips = tips ?? TipService(),
+       parentGate = parentGate ?? ParentGate();
 
   final AppConfig config;
   final ProductCatalog catalog;
@@ -54,6 +57,9 @@ class Services {
   final ProfileStore profile;
   final ShareService share;
   final TipService tips;
+
+  /// Gate shown before real-money purchases; holds the 60 s lock.
+  final ParentGate parentGate;
 
   /// Production wiring (Android v1).
   static Future<Services> create({

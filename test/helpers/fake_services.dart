@@ -8,6 +8,7 @@ import 'package:blockfall/core/identity/identity_service.dart';
 import 'package:blockfall/core/leaderboard/leaderboard_service.dart';
 import 'package:blockfall/core/notifications/notification_service.dart';
 import 'package:blockfall/core/profile/profile_store.dart';
+import 'package:blockfall/core/purchase/parent_gate.dart';
 import 'package:blockfall/core/purchase/purchase_service.dart';
 import 'package:blockfall/core/remote_config/remote_config_service.dart';
 import 'package:blockfall/core/save/save_service.dart';
@@ -22,6 +23,7 @@ Future<Services> buildFakeServices({
   FakeShareService? share,
   String? shareLink,
   bool tips = false,
+  ParentGate? parentGate,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -52,6 +54,7 @@ Future<Services> buildFakeServices({
     remoteConfig: const NoopRemoteConfigService(),
     profile: profile,
     share: share ?? FakeShareService(link: shareLink),
+    parentGate: parentGate,
   );
   services.wirePurchases();
   return services;

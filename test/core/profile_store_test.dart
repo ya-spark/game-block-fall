@@ -13,11 +13,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const _catalog = ProductCatalog([
   ProductDef(
-    id: 'remove_ads',
+    id: 'remove_ads_all',
     type: ProductType.nonConsumable,
     title: 'Remove Ads',
     description: '',
-    grants: 'remove_ads',
+    grants: 'remove_ads_all',
   ),
   ProductDef(
     id: 'coins_500',
@@ -289,9 +289,19 @@ void main() {
   test('remove-ads purchase sets the flag; restore is idempotent', () async {
     final p = make();
     await p.init();
-    const u = PurchaseUpdate('remove_ads', PurchaseStatus.purchased);
+    const u = PurchaseUpdate('remove_ads_all', PurchaseStatus.purchased);
     await p.deliverPurchase(u, _catalog);
     await p.deliverPurchase(u, _catalog);
+    expect(p.data.adsRemoved, isTrue);
+  });
+
+  test('the retired remove_ads id still counts as owned', () async {
+    final p = make();
+    await p.init();
+    await p.deliverPurchase(
+      const PurchaseUpdate('remove_ads', PurchaseStatus.restored),
+      _catalog,
+    );
     expect(p.data.adsRemoved, isTrue);
   });
 
@@ -321,7 +331,7 @@ void main() {
     final p = make();
     await p.init();
     await p.deliverPurchase(
-      const PurchaseUpdate('remove_ads', PurchaseStatus.canceled),
+      const PurchaseUpdate('remove_ads_all', PurchaseStatus.canceled),
       _catalog,
     );
     expect(p.data.adsRemoved, isFalse);

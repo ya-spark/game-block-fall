@@ -19,10 +19,13 @@ class ProductDef {
   final String description;
   final int coins;
 
-  /// Special entitlement, e.g. `remove_ads`.
+  /// Special entitlement, e.g. `remove_ads_all`.
   final String? grants;
 
-  static const String removeAdsGrant = 'remove_ads';
+  static const String removeAdsGrant = 'remove_ads_all';
+
+  /// Retired Play product id; a saved or restored purchase of it still counts as Remove Ads.
+  static const String legacyRemoveAdsId = 'remove_ads';
 }
 
 class ProductCatalog {

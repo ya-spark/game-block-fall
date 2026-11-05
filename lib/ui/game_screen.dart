@@ -22,6 +22,7 @@ import 'hud_widgets.dart';
 import 'share_card.dart';
 import 'test_ids.dart';
 import 'theme_fade.dart';
+import 'widgets.dart';
 
 /// `--dart-define=BLOCKFALL_SEED=<int>` fixes the bag order and prism placement.
 const int kBlockfallSeed = int.fromEnvironment(
@@ -373,16 +374,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     if (!mounted) return;
     switch (action) {
       case 'revive':
-        final earned = await s.ads.showRewarded(AdPlacement.revive);
-        if (!mounted) return;
-        if (earned && game.revive()) {
-          flame.refresh();
+        if (await _continueGame(s, game)) {
+          if (mounted) flame.refresh();
           return;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ad not available. Try again later.')),
-        );
-        _showGameOver();
+        if (mounted) _showGameOver();
       case 'retry':
         await _finishGame();
         await s.ads.maybeShowInterstitialAfterGameOver();
@@ -399,6 +395,53 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         await s.ads.maybeShowInterstitialAfterGameOver();
         if (mounted) Navigator.of(context).pop();
     }
+  }
+
+  /// Game-over Continue. Remove Ads owners continue at once; with fewer than
+  /// [continueCoinCost] coins it goes straight to the rewarded ad; otherwise the
+  /// player picks an ad or coins. Returns true when the game continued.
+  Future<bool> _continueGame(Services s, BlockfallGame game) async {
+    if (s.profile.data.adsRemoved) return game.revive();
+    var useCoins = false;
+    if (s.profile.data.coins >= continueCoinCost) {
+      final choice = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Continue'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 10,
+            children: [
+              FilledButton.icon(
+                key: TestIds.gameOverContinueAd,
+                icon: const Icon(Icons.smart_display),
+                label: const Text('Watch an ad (free)'),
+                onPressed: () => Navigator.pop(ctx, 'ad'),
+              ),
+              OutlinedButton.icon(
+                key: TestIds.gameOverContinueCoins,
+                icon: const CoinIcon(),
+                label: const Text('Use $continueCoinCost coins'),
+                onPressed: () => Navigator.pop(ctx, 'coins'),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (!mounted || choice == null) return false;
+      useCoins = choice == 'coins';
+    }
+    if (useCoins) {
+      if (!game.canRevive || !await s.profile.spendCoins(continueCoinCost)) {
+        return false;
+      }
+      return game.revive();
+    }
+    final earned = await s.ads.showRewarded(AdPlacement.revive);
+    if (!mounted) return false;
+    if (earned && game.revive()) return true;
+    _snack('Ad not available. Try again later.');
+    return false;
   }
 
   Future<void> _leave() async {
@@ -451,14 +494,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               ),
               FilledButton.icon(
                 key: TestIds.gameRefillCoins,
-                icon: const Icon(Icons.monetization_on),
+                icon: const CoinIcon(),
                 label: Text('Buy with coins (${t.price})'),
                 onPressed: () => Navigator.pop(ctx, 'coins'),
               ),
               OutlinedButton.icon(
                 key: TestIds.gameRefillAd,
                 icon: const Icon(Icons.smart_display),
-                label: Text('Watch ad for +1 (${f.rules.adRefillsLeft} left)'),
+                label: Text(
+                  s.profile.data.adsRemoved
+                      ? 'Get +1 free (${f.rules.adRefillsLeft} left)'
+                      : 'Watch ad for +1 (${f.rules.adRefillsLeft} left)',
+                ),
                 onPressed: f.rules.adRefillsLeft > 0
                     ? () => Navigator.pop(ctx, 'ad')
                     : null,
@@ -478,7 +525,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           _snack('Not enough coins (${t.price} needed)');
         }
       case 'ad':
-        final earned = await s.ads.showRewarded(AdPlacement.powerUp);
+        final earned =
+            s.profile.data.adsRemoved ||
+            await s.ads.showRewarded(AdPlacement.powerUp);
         if (earned && !f.rules.refillWithAd(t)) {
           _snack('No more ad refills this game');
         } else if (!earned) {

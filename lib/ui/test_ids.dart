@@ -46,6 +46,8 @@ abstract final class TestIds {
   static const gameRefillAd = Key('game.refill.ad');
   static const gameOverDialog = Key('game.over.dialog');
   static const gameOverRevive = Key('game.over.revive');
+  static const gameOverContinueAd = Key('game.over.continue.ad');
+  static const gameOverContinueCoins = Key('game.over.continue.coins');
   static const gameOverRetry = Key('game.over.retry');
   static const gameOverHome = Key('game.over.home');
   static const gameOverShare = Key('game.over.share');
@@ -76,6 +78,12 @@ abstract final class TestIds {
   static const shopRestore = Key('shop.restore');
   static const shopUnavailable = Key('shop.unavailable');
   static Key shopBuy(String productId) => Key('shop.buy.$productId');
+
+  // Parent gate (before real-money purchases)
+  static const gateDialog = Key('gate.dialog');
+  static const gateAnswer = Key('gate.answer');
+  static const gateSubmit = Key('gate.submit');
+  static const gateCancel = Key('gate.cancel');
 
   // Settings
   static const settingsSound = Key('settings.sound');

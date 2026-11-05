@@ -10,6 +10,10 @@ enum PowerUpType {
   final int price;
 }
 
+/// Coins a game-over Continue costs when the player pays with coins instead of an ad.
+/// Counts against the same per-run limit as an ad continue.
+const int continueCoinCost = 50;
+
 abstract final class PowerUpRules {
   static const int maxUsesPerTypePerGame = 3;
   static const int maxAdRefillsPerGame = 3;

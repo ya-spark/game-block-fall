@@ -3,6 +3,7 @@ import 'package:blockfall/core/save/save_data.dart';
 import 'package:blockfall/core/services.dart';
 import 'package:blockfall/game/rules/powerups.dart';
 import 'package:blockfall/ui/test_ids.dart';
+import 'package:blockfall/ui/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -18,17 +19,28 @@ Future<void> pumpApp(WidgetTester tester, Services s) async {
 }
 
 void main() {
-  testWidgets('shop lists remove_ads and coins_500 from the fake store', (
+  testWidgets('shop lists all four products in order from the fake store', (
     tester,
   ) async {
     final s = await buildFakeServices();
     await pumpApp(tester, s);
     await tester.tap(find.byKey(TestIds.homeShop));
     await tester.pumpAndSettle();
-    expect(find.byKey(TestIds.shopBuy('remove_ads')), findsOneWidget);
-    expect(find.byKey(TestIds.shopBuy('coins_500')), findsOneWidget);
+    final ids = ['remove_ads_all', 'coins_500', 'coins_1500', 'coins_4000'];
+    for (final id in ids) {
+      expect(find.byKey(TestIds.shopBuy(id)), findsOneWidget);
+    }
+    final tops = [
+      for (final id in ids)
+        tester.getTopLeft(find.byKey(TestIds.shopBuy(id))).dy,
+    ];
+    expect([...tops]..sort(), tops, reason: 'order top to bottom');
     expect(find.text('Remove Ads'), findsOneWidget);
     expect(find.text('Coin Pack'), findsOneWidget);
+    expect(find.text('Big Coin Pack'), findsOneWidget);
+    expect(find.text('Coin Chest'), findsOneWidget);
+    expect(find.byType(CoinIcon), findsWidgets);
+    expect(find.byIcon(Icons.monetization_on), findsNothing);
     expect(find.byKey(TestIds.shopUnavailable), findsNothing);
   });
 

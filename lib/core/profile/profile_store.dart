@@ -311,6 +311,10 @@ class ProfileStore extends ChangeNotifier {
         u.status != PurchaseStatus.restored) {
       return;
     }
+    if (u.productId == ProductDef.legacyRemoveAdsId) {
+      await _commit(_data.copyWith(adsRemoved: true));
+      return;
+    }
     final def = catalog.byId(u.productId);
     if (def == null) return;
     var d = _data;

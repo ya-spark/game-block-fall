@@ -64,9 +64,8 @@ class DailyRewardScreen extends StatelessWidget {
                                   child: _DayCard(
                                     key: TestIds.dailyDay(i),
                                     day: i + 1,
-                                    icon: DailyRewardEngine.rewards[i].coins > 0
-                                        ? Icons.monetization_on
-                                        : Icons.bolt,
+                                    coin:
+                                        DailyRewardEngine.rewards[i].coins > 0,
                                     label: DailyRewardEngine.rewards[i].label,
                                     done: i < claimedThrough,
                                     today: i == today && available,
@@ -134,13 +133,15 @@ class _DayCard extends StatelessWidget {
   const _DayCard({
     super.key,
     required this.day,
-    required this.icon,
+    required this.coin,
     required this.label,
     required this.done,
     required this.today,
   });
   final int day;
-  final IconData icon;
+
+  /// Coin reward (shows the [CoinIcon]) or a power-up reward (bolt).
+  final bool coin;
   final String label;
   final bool done;
   final bool today;
@@ -186,7 +187,9 @@ class _DayCard extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, color: KidColors.sun, size: 28),
+                  coin
+                      ? const CoinIcon(size: 28)
+                      : const Icon(Icons.bolt, color: KidColors.sun, size: 28),
                   Text(
                     label,
                     textAlign: TextAlign.center,

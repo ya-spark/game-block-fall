@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:blockfall/core/ads/ad_service.dart';
 import 'package:blockfall/core/config/app_config.dart';
+import 'package:blockfall/core/purchase/purchase_service.dart';
 import 'package:blockfall/game/rules/blockfall_game.dart';
 import 'package:blockfall/game/rules/powerups.dart';
 import 'package:blockfall/ui/test_ids.dart';
@@ -120,21 +121,25 @@ void main() {
     expect(ads.interstitialTimes, isEmpty);
   });
 
-  testWidgets('remove_ads: no interstitial, rewarded revive still works', (
+  testWidgets('remove_ads_all: no interstitial, revive is instant, no ad', (
     tester,
   ) async {
     final ads = PolicyAdService(pacing, () => now)..adsRemoved = true;
     now = now.add(const Duration(minutes: 10));
     final g = mk(rows: List.filled(22, '111111111.'));
-    await openGame(tester, g, ads: ads);
+    final s = await buildFakeServices(ads: ads);
+    await s.profile.deliverPurchase(
+      const PurchaseUpdate('remove_ads_all', PurchaseStatus.purchased),
+      s.catalog,
+    );
+    await openGame(tester, g, services: s);
     await tapKey(tester, TestIds.gameOverRevive);
-    expect(ads.rewarded, [AdPlacement.revive]);
+    expect(ads.rewarded, isEmpty);
     expect(g.isGameOver, isFalse);
     for (var i = 0; i < 4; i++) {
       await ads.maybeShowInterstitialAfterGameOver();
     }
     expect(ads.interstitialTimes, isEmpty);
-    expect(ads.isRewardedReady, isTrue);
   });
 
   testWidgets('ads fail to load and the player is not signed in: game works', (

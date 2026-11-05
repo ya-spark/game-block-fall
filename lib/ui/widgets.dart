@@ -55,11 +55,15 @@ class PopIn extends StatelessWidget {
 class StatChip extends StatelessWidget {
   const StatChip({
     super.key,
-    required this.icon,
+    this.icon,
+    this.iconWidget,
     required this.label,
     this.color,
-  });
-  final IconData icon;
+  }) : assert(icon != null || iconWidget != null);
+
+  /// Material icon; ignored when [iconWidget] is given (e.g. a [CoinIcon]).
+  final IconData? icon;
+  final Widget? iconWidget;
   final String label;
   final Color? color;
 
@@ -81,7 +85,7 @@ class StatChip extends StatelessWidget {
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 24, color: color ?? KidColors.purple),
+        iconWidget ?? Icon(icon, size: 24, color: color ?? KidColors.purple),
         const SizedBox(width: 6),
         Flexible(
           child: FittedBox(
@@ -97,6 +101,61 @@ class StatChip extends StatelessWidget {
           ),
         ),
       ],
+    ),
+  );
+}
+
+/// A gold coin drawn in code: darker rim, inner ring, soft shine and "MC" in dark gold.
+class CoinIcon extends StatelessWidget {
+  const CoinIcon({super.key, this.size = 24});
+  final double size;
+
+  static const Color _gold = Color(0xFFFFC93C);
+  static const Color _rim = Color(0xFFD99A0B);
+  static const Color _ink = Color(0xFF8A5A00);
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: 'coins',
+    excludeSemantics: true,
+    child: SizedBox(
+      width: size,
+      height: size,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: _gold,
+          border: Border.all(color: _rim, width: size * 0.09),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(size * 0.08),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const RadialGradient(
+                center: Alignment(-0.4, -0.5),
+                radius: 0.9,
+                colors: [Color(0xFFFFE68A), _gold],
+              ),
+              border: Border.all(
+                color: _rim.withValues(alpha: 0.7),
+                width: size * 0.04,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                'MC',
+                style: TextStyle(
+                  fontSize: size * 0.34,
+                  fontWeight: FontWeight.w900,
+                  color: _ink,
+                  height: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     ),
   );
 }

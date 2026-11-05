@@ -8,6 +8,7 @@ import 'package:blockfall/ui/theme_fade.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/fake_services.dart';
+import '../helpers/gate_helpers.dart';
 
 Future<void> pumpApp(WidgetTester tester, Services s) async {
   tester.view.physicalSize = const Size(400, 800);
@@ -124,13 +125,15 @@ void main() {
     await pumpApp(tester, s);
     await tester.tap(find.byKey(TestIds.homeShop));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(TestIds.shopBuy('remove_ads')));
+    await tester.tap(find.byKey(TestIds.shopBuy('remove_ads_all')));
     await tester.pumpAndSettle();
+    await answerGate(tester);
     expect(s.profile.data.adsRemoved, isTrue);
     expect(s.ads.adsEnabled, isFalse);
-    expect(find.byKey(TestIds.shopBuy('remove_ads')), findsNothing);
+    expect(find.byKey(TestIds.shopBuy('remove_ads_all')), findsNothing);
     await tester.tap(find.byKey(TestIds.shopBuy('coins_500')));
     await tester.pumpAndSettle();
+    await answerGate(tester);
     expect(s.profile.data.coins, 500);
   });
 

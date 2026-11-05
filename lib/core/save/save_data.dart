@@ -33,6 +33,10 @@ class SaveData {
     this.powerUps = kInitialPowerUps,
     this.controls,
     this.ghostOn = true,
+    this.masterVolume = 1.0,
+    this.ambience = 'before_sunrise',
+    this.voiceOn = true,
+    this.leftHanded = false,
   });
 
   /// Bump when the JSON shape changes and add a step to [SaveMigrator].
@@ -69,6 +73,14 @@ class SaveData {
   /// Show the landing ghost.
   final bool ghostOn;
 
+  /// Master volume 0..1, ambience track id ('off', 'before_sunrise', ...), voice switch.
+  final double masterVolume;
+  final String ambience;
+  final bool voiceOn;
+
+  /// Left-handed layout: Hold box, control buttons, pause and back mirrored.
+  final bool leftHanded;
+
   int powerUpCount(String id) => powerUps[id] ?? 0;
 
   SaveData copyWith({
@@ -89,6 +101,10 @@ class SaveData {
     Map<String, int>? powerUps,
     ControlScheme? controls,
     bool? ghostOn,
+    double? masterVolume,
+    String? ambience,
+    bool? voiceOn,
+    bool? leftHanded,
   }) => SaveData(
     coins: coins ?? this.coins,
     bestScore: bestScore ?? this.bestScore,
@@ -107,6 +123,10 @@ class SaveData {
     powerUps: powerUps ?? this.powerUps,
     controls: controls ?? this.controls,
     ghostOn: ghostOn ?? this.ghostOn,
+    masterVolume: masterVolume ?? this.masterVolume,
+    ambience: ambience ?? this.ambience,
+    voiceOn: voiceOn ?? this.voiceOn,
+    leftHanded: leftHanded ?? this.leftHanded,
   );
 
   Map<String, Object?> toJson() => {
@@ -128,6 +148,10 @@ class SaveData {
     'powerUps': powerUps,
     'controls': controls?.name,
     'ghostOn': ghostOn,
+    'masterVolume': masterVolume,
+    'ambience': ambience,
+    'voiceOn': voiceOn,
+    'leftHanded': leftHanded,
   };
 
   /// Expects JSON already migrated to [currentVersion].
@@ -153,6 +177,13 @@ class SaveData {
     powerUps: _powerUps(j['powerUps']),
     controls: ControlScheme.values.asNameMap()[j['controls']],
     ghostOn: j['ghostOn'] as bool? ?? true,
+    masterVolume: ((j['masterVolume'] as num?)?.toDouble() ?? 1.0).clamp(
+      0.0,
+      1.0,
+    ),
+    ambience: j['ambience'] as String? ?? 'before_sunrise',
+    voiceOn: j['voiceOn'] as bool? ?? true,
+    leftHanded: j['leftHanded'] as bool? ?? false,
   );
 
   static Map<String, int> _powerUps(Object? o) {

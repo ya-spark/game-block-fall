@@ -74,4 +74,8 @@ abstract final class TestIds {
   static const settingsPlayGames = Key('settings.playGames');
   static const settingsControls = Key('settings.controls');
   static const settingsGhost = Key('settings.ghost');
+  static const settingsVolume = Key('settings.volume');
+  static const settingsAmbience = Key('settings.ambience');
+  static const settingsVoice = Key('settings.voice');
+  static const settingsHand = Key('settings.hand');
 }

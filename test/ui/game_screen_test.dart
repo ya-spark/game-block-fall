@@ -446,7 +446,7 @@ void main() {
   });
 
   testWidgets('settings: controls and ghost toggles persist', (tester) async {
-    tester.view.physicalSize = const Size(400, 800);
+    tester.view.physicalSize = const Size(400, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     final s = await buildFakeServices();
@@ -463,6 +463,66 @@ void main() {
     await tester.pumpAndSettle();
     expect(s.profile.data.controls, ControlScheme.buttons);
     expect(s.profile.data.ghostOn, isFalse);
+  });
+
+  testWidgets('settings: sound section and hand persist', (tester) async {
+    tester.view.physicalSize = const Size(400, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final s = await buildFakeServices();
+    expect(s.profile.data.masterVolume, 1.0);
+    expect(s.profile.data.ambience, 'before_sunrise');
+    expect(s.profile.data.voiceOn, isTrue);
+    expect(s.profile.data.leftHanded, isFalse);
+    await tester.pumpWidget(
+      ServicesScope(
+        services: s,
+        child: const MaterialApp(home: SettingsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(TestIds.settingsVoice));
+    await tester.pumpAndSettle();
+    expect(s.profile.data.voiceOn, isFalse);
+    await tester.drag(
+      find.byKey(TestIds.settingsVolume),
+      const Offset(-4000, 0),
+    );
+    await tester.pumpAndSettle();
+    expect(s.profile.data.masterVolume, 0.0);
+    await tester.tap(find.byKey(TestIds.settingsAmbience));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Heartbeat').last);
+    await tester.pumpAndSettle();
+    expect(s.profile.data.ambience, 'heartbeat');
+    await tester.ensureVisible(find.byKey(TestIds.settingsHand));
+    await tester.tap(find.text('Left'));
+    await tester.pumpAndSettle();
+    expect(s.profile.data.leftHanded, isTrue);
+    final back = SaveData.fromJson(s.profile.data.toJson());
+    expect(back.leftHanded, isTrue);
+    expect(back.ambience, 'heartbeat');
+    expect(back.voiceOn, isFalse);
+    expect(back.masterVolume, 0.0);
+  });
+
+  testWidgets('left hand mirrors hold, controls, pause and back', (
+    tester,
+  ) async {
+    final s = await openGame(tester, mk(), buttons: true);
+    double x(Key k) => tester.getCenter(find.byKey(k)).dx;
+    expect(x(TestIds.gameHold), lessThan(200));
+    expect(x(TestIds.gameBack), lessThan(200));
+    expect(x(TestIds.gamePause), greaterThan(200));
+    expect(x(TestIds.gameCtlHardDrop), greaterThan(x(TestIds.gameCtlRight)));
+    await tester.pumpWidget(const SizedBox());
+    await s.profile.setLeftHanded(true);
+    await openGame(tester, mk(), buttons: true, services: s);
+    expect(x(TestIds.gameHold), greaterThan(200));
+    expect(x(TestIds.gameBack), greaterThan(200));
+    expect(x(TestIds.gamePause), lessThan(200));
+    expect(x(TestIds.gameCtlHardDrop), lessThan(x(TestIds.gameCtlLeft)));
+    expect(x(TestIds.gameCtlLeft), lessThan(x(TestIds.gameCtlRight)));
   });
 
   testWidgets('bot plays random drops with the buttons until game over', (

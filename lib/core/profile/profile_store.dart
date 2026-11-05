@@ -253,6 +253,11 @@ class ProfileStore extends ChangeNotifier {
   Future<void> setControls(ControlScheme v) =>
       _commit(_data.copyWith(controls: v));
   Future<void> setGhost(bool v) => _commit(_data.copyWith(ghostOn: v));
+  Future<void> setMasterVolume(double v) =>
+      _commit(_data.copyWith(masterVolume: v.clamp(0.0, 1.0)));
+  Future<void> setAmbience(String id) => _commit(_data.copyWith(ambience: id));
+  Future<void> setVoice(bool v) => _commit(_data.copyWith(voiceOn: v));
+  Future<void> setLeftHanded(bool v) => _commit(_data.copyWith(leftHanded: v));
 
   int powerUpCount(String id) => _data.powerUpCount(id);
 

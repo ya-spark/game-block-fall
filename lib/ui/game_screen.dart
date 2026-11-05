@@ -95,8 +95,19 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       rules: rules,
       showGhost: _s!.profile.data.ghostOn,
     )..onEvent = _onEvent;
-    _audio.enabled = _s!.profile.data.soundOn;
+    _syncAudio();
+    _audio.startAmbience();
     _audio.voice('go');
+  }
+
+  void _syncAudio() {
+    final d = _s!.profile.data;
+    _audio.apply(
+      sound: d.soundOn,
+      volume: d.masterVolume,
+      ambience: d.ambience,
+      voice: d.voiceOn,
+    );
   }
 
   BlockfallGame _newRules() {
@@ -125,17 +136,24 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final f = _flame;
     if (f == null || f.rules.isGameOver || _dialogOpen) return;
     setState(() => _paused = true);
+    _audio.pauseAmbience();
     _syncPause();
   }
 
   void _resume() {
     setState(() => _paused = false);
+    _audio.startAmbience();
     _syncPause();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed) _pause();
+    if (state != AppLifecycleState.resumed) {
+      _audio.pauseAmbience();
+      _pause();
+    } else if (!_paused) {
+      _audio.startAmbience();
+    }
   }
 
   // ------------------------------------------------------------ game events
@@ -144,7 +162,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final s = _s;
     if (s == null) return;
     final vib = s.profile.data.vibrationOn;
-    _audio.enabled = s.profile.data.soundOn;
+    _syncAudio();
     switch (e) {
       case PieceLocked():
         if (vib) HapticFeedback.lightImpact();
@@ -503,16 +521,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final s = _s!;
     final rules = flame.rules;
     final buttons = s.profile.controlScheme == ControlScheme.buttons;
+    final left = s.profile.data.leftHanded;
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
           child: Row(
             children: [
+              // Left-handed: pause on the left, back on the right (score and best stay).
               IconButton.filledTonal(
-                key: TestIds.gameBack,
-                icon: const Icon(Icons.chevron_left),
-                onPressed: _leave,
+                key: left ? TestIds.gamePause : TestIds.gameBack,
+                icon: Icon(left ? Icons.pause : Icons.chevron_left),
+                onPressed: left ? _pause : _leave,
               ),
               // Score shares the header row, so the well gets the freed height.
               Expanded(
@@ -530,9 +550,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               ),
               const SizedBox(width: 8),
               IconButton.filledTonal(
-                key: TestIds.gamePause,
-                icon: const Icon(Icons.pause),
-                onPressed: _pause,
+                key: left ? TestIds.gameBack : TestIds.gamePause,
+                icon: Icon(left ? Icons.chevron_left : Icons.pause),
+                onPressed: left ? _leave : _pause,
               ),
             ],
           ),
@@ -549,7 +569,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 _buildMiddle(BlockfallLayout(c.maxWidth, c.maxHeight), flame),
           ),
         ),
-        if (buttons) _buildControls(flame),
+        if (buttons) _buildControls(flame, left),
         const SizedBox(height: 6),
         _buildPowerUps(flame),
         const SizedBox(height: 8),
@@ -560,6 +580,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   Widget _buildMiddle(BlockfallLayout l, BlockfallFlameGame flame) {
     final rules = flame.rules;
     final touch = _s!.profile.controlScheme != ControlScheme.buttons;
+    final leftHanded = _s!.profile.data.leftHanded;
     Widget well = SizedBox(
       width: l.wellWidth,
       height: l.wellHeight,
@@ -606,7 +627,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       mainAxisAlignment: MainAxisAlignment.center,
       spacing: l.gap,
       children: [
-        holdBox,
+        if (!leftHanded) holdBox,
         ValueNode(
           key: TestIds.gameLevel,
           value: '${rules.level}',
@@ -645,6 +666,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               ),
             ),
           ),
+        if (leftHanded) holdBox,
       ],
     );
     return Column(
@@ -657,48 +679,60 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildControls(BlockfallFlameGame f) => Padding(
-    padding: const EdgeInsets.only(top: 6),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      spacing: 8,
-      children: [
-        ControlButton(
-          key: TestIds.gameCtlLeft,
-          icon: Icons.arrow_left,
-          label: 'Move left',
-          repeat: true,
-          onPress: f.moveLeft,
-        ),
-        ControlButton(
-          key: TestIds.gameCtlRotate,
-          icon: Icons.rotate_right,
-          label: 'Rotate',
-          onPress: f.rotate,
-        ),
-        ControlButton(
-          key: TestIds.gameCtlRight,
-          icon: Icons.arrow_right,
-          label: 'Move right',
-          repeat: true,
-          onPress: f.moveRight,
-        ),
-        ControlButton(
-          key: TestIds.gameCtlSoftDrop,
-          icon: Icons.keyboard_arrow_down,
-          label: 'Soft drop',
-          onPress: () => f.setSoftDrop(true, minSeconds: 0.15),
-          onRelease: () => f.setSoftDrop(false),
-        ),
-        ControlButton(
-          key: TestIds.gameCtlHardDrop,
-          icon: Icons.keyboard_double_arrow_down,
-          label: 'Hard drop',
-          onPress: f.hardDrop,
-        ),
-      ],
-    ),
-  );
+  Widget _buildControls(BlockfallFlameGame f, bool leftHanded) {
+    final steer = <Widget>[
+      ControlButton(
+        key: TestIds.gameCtlLeft,
+        icon: Icons.arrow_left,
+        label: 'Move left',
+        repeat: true,
+        onPress: f.moveLeft,
+      ),
+      ControlButton(
+        key: TestIds.gameCtlRotate,
+        icon: Icons.rotate_right,
+        label: 'Rotate',
+        onPress: f.rotate,
+      ),
+      ControlButton(
+        key: TestIds.gameCtlRight,
+        icon: Icons.arrow_right,
+        label: 'Move right',
+        repeat: true,
+        onPress: f.moveRight,
+      ),
+    ];
+    final drops = <Widget>[
+      ControlButton(
+        key: TestIds.gameCtlSoftDrop,
+        icon: Icons.keyboard_arrow_down,
+        label: 'Soft drop',
+        onPress: () => f.setSoftDrop(true, minSeconds: 0.15),
+        onRelease: () => f.setSoftDrop(false),
+      ),
+      ControlButton(
+        key: TestIds.gameCtlHardDrop,
+        icon: Icons.keyboard_double_arrow_down,
+        label: 'Hard drop',
+        onPress: f.hardDrop,
+      ),
+    ];
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 8,
+        children: [
+          // Left-handed mirrors the groups: drops on the left, steering on the right.
+          // Arrows keep their meaning, so move-left stays left of move-right.
+          if (!leftHanded) ...steer,
+          if (!leftHanded) ...drops,
+          if (leftHanded) ...drops.reversed,
+          if (leftHanded) ...steer,
+        ],
+      ),
+    );
+  }
 
   Widget _buildPowerUps(BlockfallFlameGame f) => Row(
     mainAxisAlignment: MainAxisAlignment.center,

@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:blockfall/app.dart';
 import 'package:blockfall/core/profile/profile_store.dart';
+import 'package:blockfall/core/save/save_data.dart';
+import 'package:blockfall/core/save/save_service.dart';
 import 'package:blockfall/core/services.dart';
 import 'package:blockfall/core/share/share_service.dart';
 import 'package:blockfall/game/rules/blockfall_game.dart';
 import 'package:blockfall/game/themes/block_theme.dart';
+import 'package:blockfall/ui/game_screen.dart';
 import 'package:blockfall/ui/share_card.dart';
 import 'package:blockfall/ui/test_ids.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +25,19 @@ Future<void> pumpApp(WidgetTester tester, Services s) async {
   await tester.pumpWidget(GameApp(services: s));
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 400));
+}
+
+/// Save service whose `save` waits until [release] is called (a slow disk write).
+class _GatedSaveService extends MemorySaveService {
+  final _gate = Completer<void>();
+  bool gated = false;
+  void release() => _gate.complete();
+
+  @override
+  Future<void> save(SaveData d) async {
+    if (gated) await _gate.future;
+    await super.save(d);
+  }
 }
 
 BlockfallGame doomed() => mk(rows: List.filled(22, '111111111.'));
@@ -227,6 +245,59 @@ void main() {
     await tester.tap(sw);
     await tester.pump();
     expect(s.profile.tipsEnabled, isTrue);
+  });
+
+  testWidgets('no tip while a run is on screen: resume with the game on top', (
+    tester,
+  ) async {
+    var now = DateTime.utc(2026, 11, 5, 10);
+    final s = await buildFakeServices(clock: () => now, tips: true);
+    await pumpApp(tester, s);
+    await tester.tap(find.byKey(TestIds.tipClose));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.byKey(TestIds.homePlay));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(GameScreen), findsOneWidget);
+    expect(s.inRun, isTrue);
+    now = DateTime.utc(2026, 11, 6, 10);
+    expect(s.profile.homeTipPending, isTrue);
+    for (final st in [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(st);
+    }
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byKey(TestIds.tipHome), findsNothing);
+  });
+
+  testWidgets('no tip when Play is tapped while the tip is still being saved', (
+    tester,
+  ) async {
+    final saves = _GatedSaveService();
+    final s = await buildFakeServices(tips: true, profileSaves: saves);
+    saves.gated = true; // the save that marks the tip as shown is slow
+    await pumpApp(tester, s);
+    expect(find.byKey(TestIds.tipHome), findsNothing);
+    await tester.tap(find.byKey(TestIds.homePlay));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    saves.release();
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(GameScreen), findsOneWidget);
+    expect(find.byKey(TestIds.tipHome), findsNothing);
   });
 
   testWidgets('no tip in a game, in pause or on game over', (tester) async {

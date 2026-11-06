@@ -24,28 +24,42 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowTip());
   }
 
+  /// True only when Home is the page on top and no run is on screen.
+  bool _homeIsOnTop(Services s) =>
+      mounted && !s.inRun && ModalRoute.of(context)?.isCurrent == true;
+
+  bool _tipBusy = false;
+
   /// The tip of the day: one dialog the first time Home is shown each day (never in play).
+  /// Never queued: when the guard blocks it nothing happens, and the next Home visit tries again.
   Future<void> _maybeShowTip() async {
-    if (!mounted) return;
+    if (_tipBusy || !mounted) return;
     final s = ServicesScope.of(context);
     final profile = s.profile;
-    if (!profile.homeTipPending) return;
-    // Counts as shown for today as soon as it opens.
-    await profile.closeHomeTip();
-    if (!mounted) return;
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: TipCard(
-          key: TestIds.tipHome,
-          title: 'Tip of the day',
-          text: s.tips.tipOfTheDay(profile.today),
-          onClose: () => Navigator.of(ctx).pop(),
+    if (!_homeIsOnTop(s) || !profile.homeTipPending) return;
+    _tipBusy = true;
+    try {
+      final text = s.tips.tipOfTheDay(profile.today);
+      // Counts as shown for today as soon as it opens.
+      await profile.closeHomeTip();
+      // The save is async: a run may have started meanwhile, so check again before opening.
+      if (!mounted || !_homeIsOnTop(s)) return;
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: TipCard(
+            key: TestIds.tipHome,
+            title: 'Tip of the day',
+            text: text,
+            onClose: () => Navigator.of(ctx).pop(),
+          ),
         ),
-      ),
-    );
+      );
+    } finally {
+      _tipBusy = false;
+    }
   }
 
   @override

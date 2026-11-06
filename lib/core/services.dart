@@ -58,6 +58,10 @@ class Services {
   final ShareService share;
   final TipService tips;
 
+  /// True while the game screen is on the navigator (set by `GameScreen`). The home tip of the day
+  /// never opens while it is true, whatever the route stack looks like.
+  bool inRun = false;
+
   /// Gate shown before real-money purchases; holds the 60 s lock.
   final ParentGate parentGate;
 

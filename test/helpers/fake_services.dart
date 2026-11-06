@@ -24,6 +24,7 @@ Future<Services> buildFakeServices({
   String? shareLink,
   bool tips = false,
   ParentGate? parentGate,
+  SaveService? profileSaves,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -34,7 +35,7 @@ Future<Services> buildFakeServices({
     File('products.yaml').readAsStringSync(),
   );
   final profile = ProfileStore(
-    saves: MemorySaveService(),
+    saves: profileSaves ?? MemorySaveService(),
     retention: config.retention,
     clock: clock,
   );

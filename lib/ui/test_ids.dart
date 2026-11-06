@@ -46,8 +46,6 @@ abstract final class TestIds {
   static const gameRefillAd = Key('game.refill.ad');
   static const gameOverDialog = Key('game.over.dialog');
   static const gameOverRevive = Key('game.over.revive');
-  static const gameOverContinueAd = Key('game.over.continue.ad');
-  static const gameOverContinueCoins = Key('game.over.continue.coins');
   static const gameOverRetry = Key('game.over.retry');
   static const gameOverHome = Key('game.over.home');
   static const gameOverShare = Key('game.over.share');

@@ -33,7 +33,7 @@ COME BACK EVERY DAY
 GOOD TO KNOW
 - Works offline, no account needed
 - One endless mode: play until the well fills up
-- Free to play with ads. A one-time purchase (Remove Ads) removes all ads. Optional rewarded ads, or coins, let you refill a power-up or continue after a game over.
+- Free to play with ads. A one-time purchase (Remove Ads) removes all ads. Optional rewarded ads let you refill a power-up or continue after a game over; coins buy power-ups.
 - Optional coin packs available as in-app purchases, behind a grown-up check.
 
 Drop, clear, repeat. Download Block Fall and beat your best score.

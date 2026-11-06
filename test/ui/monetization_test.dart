@@ -8,7 +8,6 @@ import 'package:blockfall/core/services.dart';
 import 'package:blockfall/game/rules/blockfall_game.dart';
 import 'package:blockfall/game/rules/powerups.dart';
 import 'package:blockfall/ui/test_ids.dart';
-import 'package:blockfall/ui/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -132,63 +131,49 @@ void main() {
     });
   });
 
-  group('Continue with coins', () {
-    testWidgets('under 50 coins goes straight to the ad', (tester) async {
-      final ads = FakeAdService();
-      final g = doomed();
-      final s = await buildFakeServices(ads: ads);
-      await s.profile.addCoins(continueCoinCost - 1);
-      await openGame(tester, g, services: s);
-      await tapKey(tester, TestIds.gameOverRevive);
-      expect(find.byKey(TestIds.gameOverContinueCoins), findsNothing);
-      expect(ads.rewardedShown, 1);
-      expect(g.isGameOver, isFalse);
-      expect(s.profile.data.coins, continueCoinCost - 1);
-    });
-
-    testWidgets('50 coins or more opens the choice; coins spend exactly 50', (
+  group('Continue needs a rewarded ad', () {
+    testWidgets('with 1000 coins it calls the ad directly, spends no coins', (
       tester,
     ) async {
       final ads = FakeAdService();
       final g = doomed();
       final s = await buildFakeServices(ads: ads);
-      await s.profile.addCoins(120);
+      await s.profile.addCoins(1000);
       await openGame(tester, g, services: s);
       await tapKey(tester, TestIds.gameOverRevive);
-      expect(find.byKey(TestIds.gameOverContinueAd), findsOneWidget);
-      expect(find.byType(CoinIcon), findsWidgets);
-      await tapKey(tester, TestIds.gameOverContinueCoins);
-      expect(s.profile.data.coins, 120 - continueCoinCost);
-      expect(ads.rewardedShown, 0);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(ads.rewardedShown, 1);
       expect(g.isGameOver, isFalse);
       expect(g.revivesUsed, 1);
+      expect(s.profile.data.coins, 1000);
     });
 
-    testWidgets('choosing the ad costs no coins', (tester) async {
-      final ads = FakeAdService();
+    testWidgets('ad not earned: no continue, panel open, coins unchanged', (
+      tester,
+    ) async {
+      final ads = FakeAdService(rewardResult: false);
       final g = doomed();
       final s = await buildFakeServices(ads: ads);
-      await s.profile.addCoins(120);
+      await s.profile.addCoins(1000);
       await openGame(tester, g, services: s);
       await tapKey(tester, TestIds.gameOverRevive);
-      await tapKey(tester, TestIds.gameOverContinueAd);
       expect(ads.rewardedShown, 1);
-      expect(s.profile.data.coins, 120);
-      expect(g.isGameOver, isFalse);
+      expect(g.isGameOver, isTrue);
+      expect(g.revivesUsed, 0);
+      expect(find.byKey(TestIds.gameOverDialog), findsOneWidget);
+      expect(find.textContaining('No ad available right now'), findsOneWidget);
+      expect(s.profile.data.coins, 1000);
     });
 
-    testWidgets('a coin continue counts against the per-run limit', (
+    testWidgets('an ad continue counts against the per-run limit', (
       tester,
     ) async {
       final g = doomed();
       final s = await buildFakeServices();
-      await s.profile.addCoins(1000);
       await openGame(tester, g, services: s);
       expect(g.revivesRemaining, PowerUpRules.maxRevivesPerRun);
       await tapKey(tester, TestIds.gameOverRevive);
-      await tapKey(tester, TestIds.gameOverContinueCoins);
       expect(g.revivesRemaining, PowerUpRules.maxRevivesPerRun - 1);
-      expect(s.profile.data.coins, 1000 - continueCoinCost);
     });
 
     testWidgets('Remove Ads owners continue at once, no ad, no coins', (
@@ -201,7 +186,6 @@ void main() {
       await own(s);
       await openGame(tester, g, services: s);
       await tapKey(tester, TestIds.gameOverRevive);
-      expect(find.byKey(TestIds.gameOverContinueCoins), findsNothing);
       expect(ads.rewardedShown, 0);
       expect(s.profile.data.coins, 500);
       expect(g.isGameOver, isFalse);

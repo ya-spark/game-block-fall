@@ -397,50 +397,15 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
   }
 
-  /// Game-over Continue. Remove Ads owners continue at once; with fewer than
-  /// [continueCoinCost] coins it goes straight to the rewarded ad; otherwise the
-  /// player picks an ad or coins. Returns true when the game continued.
+  /// Game-over Continue. Remove Ads owners continue at once; everyone else must
+  /// earn the rewarded ad. Never falls back to coins or a free continue.
+  /// Returns true when the game continued.
   Future<bool> _continueGame(Services s, BlockfallGame game) async {
     if (s.profile.data.adsRemoved) return game.revive();
-    var useCoins = false;
-    if (s.profile.data.coins >= continueCoinCost) {
-      final choice = await showDialog<String>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Continue'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 10,
-            children: [
-              FilledButton.icon(
-                key: TestIds.gameOverContinueAd,
-                icon: const Icon(Icons.smart_display),
-                label: const Text('Watch an ad (free)'),
-                onPressed: () => Navigator.pop(ctx, 'ad'),
-              ),
-              OutlinedButton.icon(
-                key: TestIds.gameOverContinueCoins,
-                icon: const CoinIcon(),
-                label: const Text('Use $continueCoinCost coins'),
-                onPressed: () => Navigator.pop(ctx, 'coins'),
-              ),
-            ],
-          ),
-        ),
-      );
-      if (!mounted || choice == null) return false;
-      useCoins = choice == 'coins';
-    }
-    if (useCoins) {
-      if (!game.canRevive || !await s.profile.spendCoins(continueCoinCost)) {
-        return false;
-      }
-      return game.revive();
-    }
     final earned = await s.ads.showRewarded(AdPlacement.revive);
     if (!mounted) return false;
     if (earned && game.revive()) return true;
-    _snack('Ad not available. Try again later.');
+    _snack('No ad available right now. Try again in a moment.');
     return false;
   }
 

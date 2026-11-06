@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 /// Game-over overlay: a clear dark panel (rounded card, about 90 % opaque, thin light border,
 /// soft shadow) so text and buttons never mix with the game background. Order top to bottom:
-/// Share icon (top left), title and scores, [buttons] side by side, [leadButton] (Continue)
-/// last. An eye button fades the panel out so the final board is visible; a tap anywhere, or
+/// Share icon (top left), title and scores, [buttons] side by side, [extraButton] (optional,
+/// a game's extra action, e.g. a refill), [leadButton] (Continue) last. The card is vertically
+/// centred. An eye button fades the panel out so the final board is visible; a tap anywhere, or
 /// the eye button, brings it back.
 class GameOverPanel extends StatefulWidget {
   const GameOverPanel({
@@ -11,6 +12,7 @@ class GameOverPanel extends StatefulWidget {
     required this.title,
     required this.details,
     required this.buttons,
+    this.extraButton,
     this.leadButton,
     this.shareButton,
     this.viewKey,
@@ -24,6 +26,10 @@ class GameOverPanel extends StatefulWidget {
 
   /// Play again and Home, side by side.
   final List<GameOverButton> buttons;
+
+  /// Optional extra action (a game's own, e.g. Wingy's Dash Refill) on its own row between the
+  /// side-by-side buttons and [leadButton].
+  final GameOverButton? extraButton;
 
   /// Optional main action (Continue) shown alone, last, at the bottom of the panel.
   final GameOverButton? leadButton;
@@ -174,6 +180,10 @@ class _GameOverPanelState extends State<GameOverPanel>
               ],
             ],
           ),
+          if (widget.extraButton != null) ...[
+            const SizedBox(height: 14),
+            widget.extraButton!,
+          ],
           if (widget.leadButton != null) ...[
             const SizedBox(height: 14),
             widget.leadButton!,
@@ -207,10 +217,13 @@ class _GameOverPanelState extends State<GameOverPanel>
               ),
             ),
           Align(
-            alignment: Alignment.topCenter,
+            alignment: Alignment.center,
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Stack(
                   children: [
                     if (showCard)

@@ -5,6 +5,7 @@ import '../core/audio/audio_service.dart';
 import '../core/profile/profile_store.dart';
 import '../core/save/save_data.dart';
 import '../core/services.dart';
+import 'more_games_screen.dart';
 import 'test_ids.dart';
 import 'widgets.dart';
 
@@ -132,6 +133,15 @@ class SettingsScreen extends StatelessWidget {
                   onChanged: p.setTipsEnabled,
                 ),
               ),
+              if (s.config.visibleMoreGames.isNotEmpty)
+                KidPanel(
+                  child: ListTile(
+                    key: TestIds.settingsMoreGames,
+                    leading: const Icon(Icons.apps),
+                    title: const Text('More games'),
+                    onTap: () => openMoreGames(context),
+                  ),
+                ),
               if (s.config.shareLink != null)
                 KidPanel(
                   child: ListTile(

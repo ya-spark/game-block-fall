@@ -182,7 +182,7 @@ class MenuButton extends StatefulWidget {
   final bool badge;
   final bool primary;
 
-  /// Half-width variant for the Home 2 x 2 grid: fills the width it is given (64 dp tall),
+  /// Half-width variant for the Home Daily reward / Challenges row: fills the width it is given (52 dp tall),
   /// with a smaller icon and label.
   final bool compact;
   final String? emoji;
@@ -199,7 +199,7 @@ class _MenuButtonState extends State<MenuButton> {
 
   @override
   Widget build(BuildContext context) {
-    final height = widget.primary ? 76.0 : 64.0;
+    final height = widget.primary ? 60.0 : 52.0;
     final button = AnimatedScale(
       scale: _pressed ? 0.95 : 1,
       duration: const Duration(milliseconds: 90),
@@ -235,15 +235,15 @@ class _MenuButtonState extends State<MenuButton> {
                       widget.emoji!,
                       style: TextStyle(
                         fontSize: widget.primary
-                            ? 36
-                            : (widget.compact ? 22 : 28),
+                            ? 30
+                            : (widget.compact ? 20 : 24),
                       ),
                     )
                   else
                     Icon(
                       widget.icon,
                       color: Colors.white,
-                      size: widget.primary ? 38 : (widget.compact ? 24 : 30),
+                      size: widget.primary ? 30 : (widget.compact ? 22 : 24),
                     ),
                   SizedBox(width: widget.compact ? 6 : 10),
                   Flexible(
@@ -254,8 +254,8 @@ class _MenuButtonState extends State<MenuButton> {
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: widget.primary
-                              ? 32
-                              : (widget.compact ? 18 : 24),
+                              ? 24
+                              : (widget.compact ? 16 : 20),
                           fontWeight: FontWeight.w900,
                           shadows: const [
                             Shadow(
@@ -277,7 +277,7 @@ class _MenuButtonState extends State<MenuButton> {
     return PopIn(
       index: widget.index,
       child: SizedBox(
-        width: widget.compact ? null : 290,
+        width: widget.compact ? null : 240,
         height: height,
         child: _BadgeDot(
           show: widget.badge,
@@ -330,23 +330,23 @@ class _BadgeDot extends StatelessWidget {
 }
 
 /// Home column height without the hero band and without the gaps: title (~58), stat chips (48),
-/// 8 dp spacer, Play (76) and the 2 x 2 grid (2 x 64 + 10).
-const double _homeFixedHeight = 58 + 48 + 8 + 76 + 138;
+/// 8 dp spacer, Play (60) and the Daily reward / Challenges row (52).
+const double _homeFixedHeight = 58 + 48 + 8 + 60 + 52;
 
-/// Hero band height and spacing between Home groups for [available] dp of height: 160 and 14 when
-/// there is room, else spacing 10 and the hero shrinks down to 96.
+/// Hero band height and spacing between Home groups for [available] dp of height: 160 and 10 when
+/// there is room, else spacing 8 and the hero shrinks down to 96.
 (double, double) homeLayout(double available) {
-  if (available >= _homeFixedHeight + 5 * 14 + HomeHero.maxHeight) {
-    return (HomeHero.maxHeight, 14);
+  if (available >= _homeFixedHeight + 5 * 10 + HomeHero.maxHeight) {
+    return (HomeHero.maxHeight, 10);
   }
-  final hero = (available - _homeFixedHeight - 5 * 10).clamp(
+  final hero = (available - _homeFixedHeight - 5 * 8).clamp(
     HomeHero.minHeight,
     HomeHero.maxHeight,
   );
-  return (hero, 10);
+  return (hero, 8);
 }
 
-/// The Home secondary buttons in rows of two, 10 dp apart, as wide as the Play button (290 dp).
+/// The Home secondary buttons in rows of two, 8 dp apart, as wide as the Play button (240 dp).
 /// A lone last button spans the row, so hidden buttons leave no gap.
 class HomeGrid extends StatelessWidget {
   const HomeGrid({super.key, required this.children});
@@ -358,15 +358,69 @@ class HomeGrid extends StatelessWidget {
     for (var i = 0; i < children.length; i += 2) {
       rows.add(
         Row(
-          spacing: 10,
+          spacing: 8,
           children: [
             for (final c in children.skip(i).take(2)) Expanded(child: c),
           ],
         ),
       );
     }
-    return SizedBox(width: 290, child: Column(spacing: 10, children: rows));
+    return SizedBox(width: 240, child: Column(spacing: 8, children: rows));
   }
+}
+
+/// Small round Home icon (Shop, Settings, More games): 44 dp gradient circle with a 2 dp white
+/// border and a white 24 dp icon, 48 dp tap target. The key sits on the 48 dp target.
+class HomeIconButton extends StatelessWidget {
+  const HomeIconButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.colors,
+    required this.onPressed,
+  });
+  final IconData icon;
+  final String label;
+  final List<Color> colors;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: label,
+    button: true,
+    excludeSemantics: true,
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onPressed,
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: Center(
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: colors,
+              ),
+              border: Border.all(color: Colors.white, width: 2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x55000000),
+                  blurRadius: 4,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: Colors.white, size: 24),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// White rounded card that groups a row on the colorful menu screens.

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/services.dart';
 import '../game/themes/block_theme.dart';
 import 'home_hero.dart';
+import 'more_games_screen.dart';
 import 'routes.dart';
 import 'test_ids.dart';
 import 'theme_fade.dart';
@@ -97,145 +98,167 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           theme: BlockTheme.byIndex(profile.data.themeIndex),
           child: child!,
         ),
-        child: SafeArea(
-          child: ListenableBuilder(
-            listenable: profile,
-            builder: (context, _) {
-              final claimable = profile.challenges.any((c) => c.claimable);
-              return LayoutBuilder(
-                builder: (context, box) {
-                  final (heroH, gap) = homeLayout(box.maxHeight);
-                  return Center(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: gap,
-                        children: [
-                          HomeHero(height: heroH),
-                          PopIn(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                '\u{1F9E9} ${s.config.displayName} \u{2728}',
-                                maxLines: 1,
-                                style: const TextStyle(
-                                  fontSize: 38,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                  shadows: [
-                                    Shadow(
-                                      color: KidColors.purpleDark,
-                                      blurRadius: 0,
-                                      offset: Offset(3, 4),
-                                    ),
-                                  ],
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            alignment: WrapAlignment.center,
+        child: Stack(
+          children: [
+            SafeArea(
+              child: ListenableBuilder(
+                listenable: profile,
+                builder: (context, _) {
+                  final claimable = profile.challenges.any((c) => c.claimable);
+                  return LayoutBuilder(
+                    builder: (context, box) {
+                      final (heroH, gap) = homeLayout(box.maxHeight);
+                      return Center(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: gap,
                             children: [
-                              KeyedSubtree(
-                                key: TestIds.homeCoins,
-                                child: StatChip(
-                                  iconWidget: const CoinIcon(),
-                                  label: '${profile.data.coins}',
-                                  color: KidColors.orange,
-                                ),
-                              ),
-                              KeyedSubtree(
-                                key: TestIds.homeBestScore,
-                                child: StatChip(
-                                  icon: Icons.emoji_events,
-                                  color: KidColors.purple,
-                                  label: 'Best ${profile.data.bestScore}',
-                                ),
-                              ),
-                              if (s.config.retention.streaks)
-                                KeyedSubtree(
-                                  key: TestIds.homeStreak,
-                                  child: StatChip(
-                                    icon: Icons.local_fire_department,
-                                    label: '${profile.displayStreak}',
-                                    color: Colors.deepOrange,
+                              HomeHero(height: heroH),
+                              PopIn(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    '\u{1F9E9} ${s.config.displayName} \u{2728}',
+                                    maxLines: 1,
+                                    style: const TextStyle(
+                                      fontSize: 38,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                      shadows: [
+                                        Shadow(
+                                          color: KidColors.purpleDark,
+                                          blurRadius: 0,
+                                          offset: Offset(3, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    textAlign: TextAlign.center,
                                   ),
                                 ),
+                              ),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                alignment: WrapAlignment.center,
+                                children: [
+                                  KeyedSubtree(
+                                    key: TestIds.homeCoins,
+                                    child: StatChip(
+                                      iconWidget: const CoinIcon(),
+                                      label: '${profile.data.coins}',
+                                      color: KidColors.orange,
+                                    ),
+                                  ),
+                                  KeyedSubtree(
+                                    key: TestIds.homeBestScore,
+                                    child: StatChip(
+                                      icon: Icons.emoji_events,
+                                      color: KidColors.purple,
+                                      label: 'Best ${profile.data.bestScore}',
+                                    ),
+                                  ),
+                                  if (s.config.retention.streaks)
+                                    KeyedSubtree(
+                                      key: TestIds.homeStreak,
+                                      child: StatChip(
+                                        icon: Icons.local_fire_department,
+                                        label: '${profile.displayStreak}',
+                                        color: Colors.deepOrange,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              MenuButton(
+                                key: TestIds.homePlay,
+                                label: 'Play',
+                                icon: Icons.play_arrow,
+                                emoji: '\u{25B6}\u{FE0F}',
+                                primary: true,
+                                top: KidColors.green,
+                                bottom: KidColors.greenDark,
+                                onPressed: () => _open(AppRoutes.play),
+                              ),
+                              HomeGrid(
+                                children: [
+                                  if (s.config.retention.dailyReward)
+                                    MenuButton(
+                                      compact: true,
+                                      key: TestIds.homeDailyReward,
+                                      label: 'Daily reward',
+                                      icon: Icons.card_giftcard,
+                                      emoji: '\u{1F381}',
+                                      top: KidColors.teal,
+                                      bottom: KidColors.tealDark,
+                                      index: 1,
+                                      badge: profile.dailyRewardAvailable,
+                                      onPressed: () =>
+                                          _open(AppRoutes.dailyReward),
+                                    ),
+                                  if (s.config.retention.dailyChallenges ||
+                                      s.config.retention.achievements)
+                                    MenuButton(
+                                      compact: true,
+                                      key: TestIds.homeChallenges,
+                                      label: 'Challenges',
+                                      icon: Icons.flag,
+                                      emoji: '\u{1F3C6}',
+                                      top: KidColors.sun,
+                                      bottom: KidColors.orange,
+                                      index: 2,
+                                      badge: claimable,
+                                      onPressed: () =>
+                                          _open(AppRoutes.challenges),
+                                    ),
+                                ],
+                              ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          MenuButton(
-                            key: TestIds.homePlay,
-                            label: 'Play',
-                            icon: Icons.play_arrow,
-                            emoji: '\u{25B6}\u{FE0F}',
-                            primary: true,
-                            top: KidColors.green,
-                            bottom: KidColors.greenDark,
-                            onPressed: () => _open(AppRoutes.play),
-                          ),
-                          HomeGrid(
-                            children: [
-                              if (s.config.retention.dailyReward)
-                                MenuButton(
-                                  compact: true,
-                                  key: TestIds.homeDailyReward,
-                                  label: 'Daily reward',
-                                  icon: Icons.card_giftcard,
-                                  emoji: '\u{1F381}',
-                                  top: KidColors.teal,
-                                  bottom: KidColors.tealDark,
-                                  index: 1,
-                                  badge: profile.dailyRewardAvailable,
-                                  onPressed: () => _open(AppRoutes.dailyReward),
-                                ),
-                              if (s.config.retention.dailyChallenges ||
-                                  s.config.retention.achievements)
-                                MenuButton(
-                                  compact: true,
-                                  key: TestIds.homeChallenges,
-                                  label: 'Challenges',
-                                  icon: Icons.flag,
-                                  emoji: '\u{1F3C6}',
-                                  top: KidColors.sun,
-                                  bottom: KidColors.orange,
-                                  index: 2,
-                                  badge: claimable,
-                                  onPressed: () => _open(AppRoutes.challenges),
-                                ),
-                              MenuButton(
-                                compact: true,
-                                key: TestIds.homeShop,
-                                label: 'Shop',
-                                icon: Icons.shopping_cart,
-                                emoji: '\u{1F6D2}',
-                                top: KidColors.purple,
-                                bottom: KidColors.purpleDark,
-                                index: 3,
-                                onPressed: () => _open(AppRoutes.shop),
-                              ),
-                              MenuButton(
-                                compact: true,
-                                key: TestIds.homeSettings,
-                                label: 'Settings',
-                                icon: Icons.settings,
-                                emoji: '\u{2699}\u{FE0F}',
-                                index: 4,
-                                onPressed: () => _open(AppRoutes.settings),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   );
                 },
-              );
-            },
-          ),
+              ),
+            ),
+            SafeArea(
+              child: Align(
+                alignment: Alignment.topRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8, right: 8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 8,
+                    children: [
+                      if (s.config.visibleMoreGames.isNotEmpty)
+                        HomeIconButton(
+                          key: TestIds.homeMoreGames,
+                          icon: Icons.apps,
+                          label: 'More games',
+                          colors: const [KidColors.teal, KidColors.tealDark],
+                          onPressed: () => openMoreGames(context),
+                        ),
+                      HomeIconButton(
+                        key: TestIds.homeShop,
+                        icon: Icons.shopping_basket,
+                        label: 'Shop',
+                        colors: const [KidColors.purple, KidColors.purpleDark],
+                        onPressed: () => _open(AppRoutes.shop),
+                      ),
+                      HomeIconButton(
+                        key: TestIds.homeSettings,
+                        icon: Icons.settings,
+                        label: 'Settings',
+                        colors: const [KidColors.blue, KidColors.blueDark],
+                        onPressed: () => _open(AppRoutes.settings),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

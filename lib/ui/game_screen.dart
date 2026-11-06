@@ -983,9 +983,12 @@ class _StreakBar extends StatelessWidget {
           shadows: HudColors.of(context).shadows,
           fontSize: 13,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        // Wrap, so streak + combo + Gold Rush + prism coins never overflow a narrow screen.
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 14,
+          runSpacing: 2,
           children: [
             if (showStreak)
               Row(

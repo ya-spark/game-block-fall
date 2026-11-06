@@ -232,3 +232,12 @@ App-level (widget/integration tests via test IDs):
 
 ## Third-party packages
 Added for sharing: `share_plus` 13.3.1 (exact pin, used only in `lib/core/share/system_share_service.dart`; the Android share sheet, no network of its own). Otherwise existing template packages only (Flutter, Flame, `google_mobile_ads`, `in_app_purchase`, `flutter_local_notifications`, Play Games plugin as already in the template, audio package already in the template). If the template has no audio package, reuse what it already uses for sounds; adding a package needs a recorded reason from the coder stage.
+
+## Behaviour and feel (owner decisions, exact values)
+
+**Home screen fits without scrolling** (owner, 2026-11-06). Code: `lib/ui/home_screen.dart`, `homeLayout` and `HomeGrid` in `lib/ui/widgets.dart`.
+- At normal text size the whole Home fits with no scrolling on a 360 x 640 dp window with the banner shown (also 360 x 592), and on taller ones.
+- Order: hero, title (one line, scaled down if too wide), stat chips, **Play** (290 x 76 dp), then a **2 x 2 grid** (290 dp wide, 10 dp gaps) of Daily reward, Challenges, Shop, Settings (compact `MenuButton`, 64 dp tall, icon beside a short label, badges unchanged). A button hidden by `retention` leaves no gap: the grid reflows, and a lone last button spans the row.
+- `HomeHero` is 160 dp when there is room and shrinks down to 96 dp when the space is short. Spacing between groups is 14 dp, and 10 dp when space is short (`homeLayout`).
+- A `SingleChildScrollView` stays only as a safety net (very small windows, text scale above 1.3).
+- Test IDs are unchanged. The banner is not moved or hidden. Tests: `test/ui/home_fit_test.dart`.

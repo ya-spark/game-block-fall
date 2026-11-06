@@ -88,120 +88,137 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             listenable: profile,
             builder: (context, _) {
               final claimable = profile.challenges.any((c) => c.claimable);
-              return Center(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 14,
-                    children: [
-                      const HomeHero(),
-                      PopIn(
-                        child: Text(
-                          '\u{1F9E9} ${s.config.displayName} \u{2728}',
-                          style: const TextStyle(
-                            fontSize: 38,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                color: KidColors.purpleDark,
-                                blurRadius: 0,
-                                offset: Offset(3, 4),
+              return LayoutBuilder(
+                builder: (context, box) {
+                  final (heroH, gap) = homeLayout(box.maxHeight);
+                  return Center(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: gap,
+                        children: [
+                          HomeHero(height: heroH),
+                          PopIn(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                '\u{1F9E9} ${s.config.displayName} \u{2728}',
+                                maxLines: 1,
+                                style: const TextStyle(
+                                  fontSize: 38,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                  shadows: [
+                                    Shadow(
+                                      color: KidColors.purpleDark,
+                                      blurRadius: 0,
+                                      offset: Offset(3, 4),
+                                    ),
+                                  ],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.center,
+                            children: [
+                              KeyedSubtree(
+                                key: TestIds.homeCoins,
+                                child: StatChip(
+                                  iconWidget: const CoinIcon(),
+                                  label: '${profile.data.coins}',
+                                  color: KidColors.orange,
+                                ),
+                              ),
+                              KeyedSubtree(
+                                key: TestIds.homeBestScore,
+                                child: StatChip(
+                                  icon: Icons.emoji_events,
+                                  color: KidColors.purple,
+                                  label: 'Best ${profile.data.bestScore}',
+                                ),
+                              ),
+                              if (s.config.retention.streaks)
+                                KeyedSubtree(
+                                  key: TestIds.homeStreak,
+                                  child: StatChip(
+                                    icon: Icons.local_fire_department,
+                                    label: '${profile.displayStreak}',
+                                    color: Colors.deepOrange,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          MenuButton(
+                            key: TestIds.homePlay,
+                            label: 'Play',
+                            icon: Icons.play_arrow,
+                            emoji: '\u{25B6}\u{FE0F}',
+                            primary: true,
+                            top: KidColors.green,
+                            bottom: KidColors.greenDark,
+                            onPressed: () => _open(AppRoutes.play),
+                          ),
+                          HomeGrid(
+                            children: [
+                              if (s.config.retention.dailyReward)
+                                MenuButton(
+                                  compact: true,
+                                  key: TestIds.homeDailyReward,
+                                  label: 'Daily reward',
+                                  icon: Icons.card_giftcard,
+                                  emoji: '\u{1F381}',
+                                  top: KidColors.teal,
+                                  bottom: KidColors.tealDark,
+                                  index: 1,
+                                  badge: profile.dailyRewardAvailable,
+                                  onPressed: () => _open(AppRoutes.dailyReward),
+                                ),
+                              if (s.config.retention.dailyChallenges ||
+                                  s.config.retention.achievements)
+                                MenuButton(
+                                  compact: true,
+                                  key: TestIds.homeChallenges,
+                                  label: 'Challenges',
+                                  icon: Icons.flag,
+                                  emoji: '\u{1F3C6}',
+                                  top: KidColors.sun,
+                                  bottom: KidColors.orange,
+                                  index: 2,
+                                  badge: claimable,
+                                  onPressed: () => _open(AppRoutes.challenges),
+                                ),
+                              MenuButton(
+                                compact: true,
+                                key: TestIds.homeShop,
+                                label: 'Shop',
+                                icon: Icons.shopping_cart,
+                                emoji: '\u{1F6D2}',
+                                top: KidColors.purple,
+                                bottom: KidColors.purpleDark,
+                                index: 3,
+                                onPressed: () => _open(AppRoutes.shop),
+                              ),
+                              MenuButton(
+                                compact: true,
+                                key: TestIds.homeSettings,
+                                label: 'Settings',
+                                icon: Icons.settings,
+                                emoji: '\u{2699}\u{FE0F}',
+                                index: 4,
+                                onPressed: () => _open(AppRoutes.settings),
                               ),
                             ],
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        alignment: WrapAlignment.center,
-                        children: [
-                          KeyedSubtree(
-                            key: TestIds.homeCoins,
-                            child: StatChip(
-                              iconWidget: const CoinIcon(),
-                              label: '${profile.data.coins}',
-                              color: KidColors.orange,
-                            ),
-                          ),
-                          KeyedSubtree(
-                            key: TestIds.homeBestScore,
-                            child: StatChip(
-                              icon: Icons.emoji_events,
-                              color: KidColors.purple,
-                              label: 'Best ${profile.data.bestScore}',
-                            ),
-                          ),
-                          if (s.config.retention.streaks)
-                            KeyedSubtree(
-                              key: TestIds.homeStreak,
-                              child: StatChip(
-                                icon: Icons.local_fire_department,
-                                label: '${profile.displayStreak}',
-                                color: Colors.deepOrange,
-                              ),
-                            ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      MenuButton(
-                        key: TestIds.homePlay,
-                        label: 'Play',
-                        icon: Icons.play_arrow,
-                        emoji: '\u{25B6}\u{FE0F}',
-                        primary: true,
-                        top: KidColors.green,
-                        bottom: KidColors.greenDark,
-                        onPressed: () => _open(AppRoutes.play),
-                      ),
-                      if (s.config.retention.dailyReward)
-                        MenuButton(
-                          key: TestIds.homeDailyReward,
-                          label: 'Daily reward',
-                          icon: Icons.card_giftcard,
-                          emoji: '\u{1F381}',
-                          top: KidColors.teal,
-                          bottom: KidColors.tealDark,
-                          index: 1,
-                          badge: profile.dailyRewardAvailable,
-                          onPressed: () => _open(AppRoutes.dailyReward),
-                        ),
-                      if (s.config.retention.dailyChallenges ||
-                          s.config.retention.achievements)
-                        MenuButton(
-                          key: TestIds.homeChallenges,
-                          label: 'Challenges',
-                          icon: Icons.flag,
-                          emoji: '\u{1F3C6}',
-                          top: KidColors.sun,
-                          bottom: KidColors.orange,
-                          index: 2,
-                          badge: claimable,
-                          onPressed: () => _open(AppRoutes.challenges),
-                        ),
-                      MenuButton(
-                        key: TestIds.homeShop,
-                        label: 'Shop',
-                        icon: Icons.shopping_cart,
-                        emoji: '\u{1F6D2}',
-                        top: KidColors.purple,
-                        bottom: KidColors.purpleDark,
-                        index: 3,
-                        onPressed: () => _open(AppRoutes.shop),
-                      ),
-                      MenuButton(
-                        key: TestIds.homeSettings,
-                        label: 'Settings',
-                        icon: Icons.settings,
-                        emoji: '\u{2699}\u{FE0F}',
-                        index: 4,
-                        onPressed: () => _open(AppRoutes.settings),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               );
             },
           ),

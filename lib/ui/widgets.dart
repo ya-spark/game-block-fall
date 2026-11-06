@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'home_hero.dart';
+
 /// Friendly palette shared by the kid-facing screens.
 class KidColors {
   static const sky1 = Color(0xFF7DD3FC);
@@ -168,6 +170,7 @@ class MenuButton extends StatefulWidget {
     required this.onPressed,
     this.badge = false,
     this.primary = false,
+    this.compact = false,
     this.emoji,
     this.top = KidColors.blue,
     this.bottom = KidColors.blueDark,
@@ -178,6 +181,10 @@ class MenuButton extends StatefulWidget {
   final VoidCallback onPressed;
   final bool badge;
   final bool primary;
+
+  /// Half-width variant for the Home 2 x 2 grid: fills the width it is given (64 dp tall),
+  /// with a smaller icon and label.
+  final bool compact;
   final String? emoji;
   final Color top;
   final Color bottom;
@@ -226,15 +233,19 @@ class _MenuButtonState extends State<MenuButton> {
                   if (widget.emoji != null)
                     Text(
                       widget.emoji!,
-                      style: TextStyle(fontSize: widget.primary ? 36 : 28),
+                      style: TextStyle(
+                        fontSize: widget.primary
+                            ? 36
+                            : (widget.compact ? 22 : 28),
+                      ),
                     )
                   else
                     Icon(
                       widget.icon,
                       color: Colors.white,
-                      size: widget.primary ? 38 : 30,
+                      size: widget.primary ? 38 : (widget.compact ? 24 : 30),
                     ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: widget.compact ? 6 : 10),
                   Flexible(
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
@@ -242,7 +253,9 @@ class _MenuButtonState extends State<MenuButton> {
                         widget.label,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: widget.primary ? 32 : 24,
+                          fontSize: widget.primary
+                              ? 32
+                              : (widget.compact ? 18 : 24),
                           fontWeight: FontWeight.w900,
                           shadows: const [
                             Shadow(
@@ -264,7 +277,7 @@ class _MenuButtonState extends State<MenuButton> {
     return PopIn(
       index: widget.index,
       child: SizedBox(
-        width: 290,
+        width: widget.compact ? null : 290,
         height: height,
         child: _BadgeDot(
           show: widget.badge,
@@ -314,6 +327,46 @@ class _BadgeDot extends StatelessWidget {
         ),
     ],
   );
+}
+
+/// Home column height without the hero band and without the gaps: title (~58), stat chips (48),
+/// 8 dp spacer, Play (76) and the 2 x 2 grid (2 x 64 + 10).
+const double _homeFixedHeight = 58 + 48 + 8 + 76 + 138;
+
+/// Hero band height and spacing between Home groups for [available] dp of height: 160 and 14 when
+/// there is room, else spacing 10 and the hero shrinks down to 96.
+(double, double) homeLayout(double available) {
+  if (available >= _homeFixedHeight + 5 * 14 + HomeHero.maxHeight) {
+    return (HomeHero.maxHeight, 14);
+  }
+  final hero = (available - _homeFixedHeight - 5 * 10).clamp(
+    HomeHero.minHeight,
+    HomeHero.maxHeight,
+  );
+  return (hero, 10);
+}
+
+/// The Home secondary buttons in rows of two, 10 dp apart, as wide as the Play button (290 dp).
+/// A lone last button spans the row, so hidden buttons leave no gap.
+class HomeGrid extends StatelessWidget {
+  const HomeGrid({super.key, required this.children});
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = <Widget>[];
+    for (var i = 0; i < children.length; i += 2) {
+      rows.add(
+        Row(
+          spacing: 10,
+          children: [
+            for (final c in children.skip(i).take(2)) Expanded(child: c),
+          ],
+        ),
+      );
+    }
+    return SizedBox(width: 290, child: Column(spacing: 10, children: rows));
+  }
 }
 
 /// White rounded card that groups a row on the colorful menu screens.

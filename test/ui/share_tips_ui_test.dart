@@ -87,6 +87,8 @@ void main() {
       findsOneWidget,
     );
     await tester.scrollUntilVisible(find.byKey(TestIds.settingsShareApp), 100);
+    await tester.ensureVisible(find.byKey(TestIds.settingsShareApp));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(TestIds.settingsShareApp));
     await tester.pump();
     expect(share.sent.single.text, 'Try Block Fall!\nhttps://example.com/t');
@@ -111,6 +113,10 @@ void main() {
     await tester.pumpAndSettle();
     final btn = find.byKey(TestIds.achievementShare('ach_first_row'));
     await tester.scrollUntilVisible(btn, 100);
+    // scrollUntilVisible stops once the widget is built, which can still be just
+    // below the viewport edge; the daily content makes the layout differ per day.
+    await tester.ensureVisible(btn);
+    await tester.pumpAndSettle();
     await tester.tap(btn);
     await tester.runAsync(() async {
       for (var i = 0; i < 20 && share.sent.isEmpty; i++) {
@@ -241,6 +247,8 @@ void main() {
     await tester.pumpAndSettle();
     final sw = find.byKey(TestIds.settingsTips);
     await tester.scrollUntilVisible(sw, 100);
+    await tester.ensureVisible(sw);
+    await tester.pumpAndSettle();
     expect(tester.widget<SwitchListTile>(sw).value, isFalse);
     await tester.tap(sw);
     await tester.pump();

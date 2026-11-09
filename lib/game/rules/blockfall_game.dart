@@ -63,6 +63,147 @@ class BlockfallGame {
     stock: stock,
   );
 
+  /// The running game as JSON for the autosave: well, queue, hold, score, timers and stats.
+  /// The falling piece is saved with its position. Not meaningful once the game is over.
+  Map<String, Object?> toJson() {
+    final a = _active;
+    return {
+      'well': {
+        'colors': well.colorList,
+        'kinds': [for (final k in well.kindList) k.index],
+      },
+      'queue': [for (final s in _queue) _specToJson(s)],
+      'pool': [for (final t in _pool) t.index],
+      'generated': _generated,
+      'hold': _hold == null ? null : _specToJson(_hold!),
+      'canHold': _canHold,
+      if (a != null)
+        'active': {
+          'spec': a.spec == null ? null : _specToJson(a.spec!),
+          'rotation': a.rotation,
+          'col': a.col,
+          'row': a.row,
+        },
+      'score': _score,
+      'lines': _lines,
+      'combo': _combo,
+      'lastWasQuad': _lastWasQuad,
+      'prismCoins': _prismCoins,
+      'revivesUsed': _revivesUsed,
+      'adRefills': _adRefills,
+      'slowRemaining': _slowRemaining,
+      'rushRemaining': _rushRemaining,
+      'piecesPlaced': piecesPlaced,
+      'maxCombo': maxCombo,
+      'quads': quads,
+      'prismRowsCleared': prismRowsCleared,
+      'holdsUsed': holdsUsed,
+      'perfectClears': perfectClears,
+      'uses': {for (final e in _uses.entries) e.key.name: e.value},
+    };
+  }
+
+  /// Rebuilds a game saved by [toJson]; [stock] is the player's current power-up stock.
+  /// Returns null when [j] is unusable (a bad save starts a fresh game instead).
+  static BlockfallGame? restore(
+    Map<String, Object?> j, {
+    required Map<PowerUpType, int> stock,
+  }) {
+    try {
+      final w = j['well']! as Map;
+      final well = Well.restore(
+        [for (final c in w['colors']! as List) (c as num).toInt()],
+        [
+          for (final k in w['kinds']! as List)
+            CellKind.values[(k as num).toInt()],
+        ],
+      );
+      final g = BlockfallGame(
+        random: Random(),
+        specialRandom: Random(),
+        fitRandom: Random(),
+        well: well,
+        stock: stock,
+      );
+      g._queue
+        ..clear()
+        ..addAll([
+          for (final s in j['queue']! as List) _specFromJson(s as Map),
+        ]);
+      g._pool
+        ..clear()
+        ..addAll([
+          for (final t in j['pool']! as List)
+            PieceType.values[(t as num).toInt()],
+        ]);
+      g._generated = (j['generated']! as num).toInt();
+      final hold = j['hold'];
+      g._hold = hold == null ? null : _specFromJson(hold as Map);
+      g._canHold = j['canHold']! as bool;
+      g._score = (j['score']! as num).toInt();
+      g._lines = (j['lines']! as num).toInt();
+      g._combo = (j['combo']! as num).toInt();
+      g._lastWasQuad = j['lastWasQuad']! as bool;
+      g._prismCoins = (j['prismCoins']! as num).toInt();
+      g._revivesUsed = (j['revivesUsed']! as num).toInt();
+      g._adRefills = (j['adRefills']! as num).toInt();
+      g._slowRemaining = (j['slowRemaining']! as num).toDouble();
+      g._rushRemaining = (j['rushRemaining']! as num).toDouble();
+      g.piecesPlaced = (j['piecesPlaced']! as num).toInt();
+      g.maxCombo = (j['maxCombo']! as num).toInt();
+      g.quads = (j['quads']! as num).toInt();
+      g.prismRowsCleared = (j['prismRowsCleared']! as num).toInt();
+      g.holdsUsed = (j['holdsUsed']! as num).toInt();
+      g.perfectClears = (j['perfectClears']! as num).toInt();
+      final uses = j['uses']! as Map;
+      for (final t in PowerUpType.values) {
+        g._uses[t] = (uses[t.name] as num?)?.toInt() ?? 0;
+      }
+      final a = j['active']! as Map;
+      final spec = a['spec'];
+      final active = spec == null
+          ? ActivePiece.bomb(
+              row: (a['row']! as num).toInt(),
+              col: (a['col']! as num).toInt(),
+            )
+          : ActivePiece(
+              spec: _specFromJson(spec as Map),
+              rotation: (a['rotation']! as num).toInt() % 4,
+              col: (a['col']! as num).toInt(),
+              row: (a['row']! as num).toInt(),
+            );
+      // The constructor spawned a fresh piece; replace it with the saved one.
+      g._gameOver = false;
+      g._gameOverReason = null;
+      g._pendingSpawn = null;
+      if (!g._fits(active)) return null;
+      g._active = active;
+      g._fallAcc = 0;
+      g._lockTimer = 0;
+      g._restarts = 0;
+      g._lowestRow = g._bottomRow(active);
+      g._refillQueue();
+      g._events.clear();
+      return g;
+    } on Object {
+      return null;
+    }
+  }
+
+  static Map<String, Object?> _specToJson(PieceSpec s) => {
+    't': s.type.index,
+    if (s.prismCell != null) 'p': s.prismCell,
+    if (s.boomCell != null) 'b': s.boomCell,
+    if (s.goldCell != null) 'g': s.goldCell,
+  };
+
+  static PieceSpec _specFromJson(Map m) => PieceSpec(
+    PieceType.values[(m['t']! as num).toInt()],
+    prismCell: (m['p'] as num?)?.toInt(),
+    boomCell: (m['b'] as num?)?.toInt(),
+    goldCell: (m['g'] as num?)?.toInt(),
+  );
+
   static const int nextCount = 3;
 
   /// Every n-th piece carries one prism cell (0 disables prisms).

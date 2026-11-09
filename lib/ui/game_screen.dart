@@ -102,15 +102,51 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   void _init() {
-    final rules = widget.game ?? _newRules();
+    // An unfinished game (autosave) comes back as it was, paused; a bad save is dropped.
+    BlockfallGame? restored;
+    var themeStart = _s!.profile.data.themeIndex;
+    final saved = widget.game == null ? _s!.profile.data.game : null;
+    if (saved != null) {
+      restored = BlockfallGame.restore(saved, stock: _savedStock());
+      themeStart = (saved['themeStart'] as num?)?.toInt() ?? themeStart;
+      if (restored == null) _s!.profile.saveGame(null);
+    }
+    final rules = widget.game ?? restored ?? _newRules();
     _flame = BlockfallFlameGame(
       rules: rules,
       showGhost: _s!.profile.data.ghostOn,
-      themeStart: _s!.profile.data.themeIndex,
+      themeStart: themeStart,
     )..onEvent = _onEvent;
     _syncAudio();
+    if (restored != null) {
+      _paused = true;
+      rules.isPaused = true;
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _snack('Game resumed'),
+      );
+      return;
+    }
     _audio.startAmbience();
     _audio.voice('go');
+  }
+
+  Map<PowerUpType, int> _savedStock() {
+    final saved = _s!.profile.data;
+    return {for (final t in PowerUpType.values) t: saved.powerUpCount(t.name)};
+  }
+
+  /// Saves the running game (not a finished or untouched one) so leaving, a call or a
+  /// kill never loses it. A finished game clears the save.
+  void _autosave() {
+    final f = _flame;
+    final s = _s;
+    if (f == null || s == null || widget.game != null) return;
+    final g = f.rules;
+    if (g.isGameOver || (g.piecesPlaced == 0 && g.score == 0)) {
+      s.profile.saveGame(null);
+    } else {
+      s.profile.saveGame({...g.toJson(), 'themeStart': f.themeStart});
+    }
   }
 
   void _syncAudio() {
@@ -124,10 +160,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   BlockfallGame _newRules() {
-    final saved = _s!.profile.data;
-    final stock = {
-      for (final t in PowerUpType.values) t: saved.powerUpCount(t.name),
-    };
+    final stock = _savedStock();
     if (kBlockfallSeed >= 0) {
       return BlockfallGame.seeded(kBlockfallSeed + _gameIndex, stock: stock);
     }
@@ -151,6 +184,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     setState(() => _paused = true);
     _audio.pauseAmbience();
     _syncPause();
+    _autosave();
   }
 
   void _resume() {
@@ -180,6 +214,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case PieceLocked():
         if (vib) HapticFeedback.lightImpact();
         _warnIfStackHigh();
+        _autosave();
       case LinesCleared():
         if (vib) HapticFeedback.mediumImpact();
         _praiseClear(e);
@@ -189,6 +224,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         s.profile.setThemeIndex(_flame!.themeIndex);
       case PowerUpUsed():
         _persistStock();
+        _autosave();
       case GameOver():
         if (_flame!.rules.score > s.profile.data.bestScore) {
           _audio.voice('better_than_the_best');
@@ -196,6 +232,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           _audio.voice('game_over', variants: 2);
         }
         _persistStock();
+        _autosave();
         _showGameOver();
       default:
         break;
@@ -417,7 +454,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _leave() async {
-    await _finishGame();
+    final g = _flame?.rules;
+    if (g != null && !g.isGameOver && widget.game == null) {
+      _autosave(); // an unfinished game stays resumable; it is recorded when it ends
+    } else {
+      await _finishGame();
+    }
     if (mounted) Navigator.of(context).pop();
   }
 

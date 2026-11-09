@@ -41,7 +41,11 @@ class SaveData {
     this.tipsOff = false,
     this.tipHomeDay = -1,
     this.seenHints = const {},
+    this.game,
   });
+
+  /// The unfinished game (autosave), or null when none is running. See `BlockfallGame.toJson`.
+  final Map<String, Object?>? game;
 
   /// Bump when the JSON shape changes and add a step to [SaveMigrator].
   static const int currentVersion = 3;
@@ -125,7 +129,10 @@ class SaveData {
     bool? tipsOff,
     int? tipHomeDay,
     Set<String>? seenHints,
+    Map<String, Object?>? game,
+    bool clearGame = false,
   }) => SaveData(
+    game: clearGame ? null : (game ?? this.game),
     coins: coins ?? this.coins,
     bestScore: bestScore ?? this.bestScore,
     adsRemoved: adsRemoved ?? this.adsRemoved,
@@ -180,6 +187,7 @@ class SaveData {
     'tipsOff': tipsOff,
     'tipHomeDay': tipHomeDay,
     'seenHints': seenHints.toList()..sort(),
+    if (game != null) 'game': game,
   };
 
   /// Expects JSON already migrated to [currentVersion].
@@ -216,6 +224,7 @@ class SaveData {
     tipsOff: j['tipsOff'] as bool? ?? false,
     tipHomeDay: (j['tipHomeDay'] as num?)?.toInt() ?? -1,
     seenHints: {...?(j['seenHints'] as List?)?.cast<String>()},
+    game: _map(j['game']),
   );
 
   static Map<String, int> _powerUps(Object? o) {

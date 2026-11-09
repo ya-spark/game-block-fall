@@ -42,6 +42,23 @@ class Well {
     return w;
   }
 
+  /// A well from saved data (see [colorList] and [kindList]).
+  factory Well.restore(List<int> colors, List<CellKind> kinds) {
+    if (colors.length != cols * totalRows || kinds.length != colors.length) {
+      throw ArgumentError('bad well size');
+    }
+    final w = Well();
+    for (var i = 0; i < colors.length; i++) {
+      w._colors[i] = colors[i];
+      w._kind[i] = colors[i] == 0 ? CellKind.normal : kinds[i];
+    }
+    return w;
+  }
+
+  /// Row-major colour ids and cell kinds, for the autosave.
+  List<int> get colorList => List.unmodifiable(_colors);
+  List<CellKind> get kindList => List.unmodifiable(_kind);
+
   static const int cols = 10;
   static const int visibleRows = 20;
   static const int hiddenRows = 2;

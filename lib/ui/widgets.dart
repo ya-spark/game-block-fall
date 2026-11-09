@@ -230,6 +230,7 @@ class _MenuButtonState extends State<MenuButton> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (widget.compact) const SizedBox(width: 6),
                   if (widget.emoji != null)
                     Text(
                       widget.emoji!,
@@ -255,7 +256,7 @@ class _MenuButtonState extends State<MenuButton> {
                           color: Colors.white,
                           fontSize: widget.primary
                               ? 24
-                              : (widget.compact ? 16 : 20),
+                              : (widget.compact ? 15 : 20),
                           fontWeight: FontWeight.w900,
                           shadows: const [
                             Shadow(
@@ -267,6 +268,7 @@ class _MenuButtonState extends State<MenuButton> {
                       ),
                     ),
                   ),
+                  if (widget.compact) const SizedBox(width: 6),
                 ],
               ),
             ),
@@ -365,7 +367,7 @@ class HomeGrid extends StatelessWidget {
         ),
       );
     }
-    return SizedBox(width: 240, child: Column(spacing: 8, children: rows));
+    return SizedBox(width: 272, child: Column(spacing: 8, children: rows));
   }
 }
 

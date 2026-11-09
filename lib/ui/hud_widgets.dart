@@ -322,6 +322,13 @@ class PowerUpButton extends StatelessWidget {
     PowerUpType.bomb => 'Boom',
   };
 
+  static String description(PowerUpType t) => switch (t) {
+    PowerUpType.sweep => 'Clears the bottom 3 rows at once.',
+    PowerUpType.slow => 'Halves the falling speed for 20 seconds.',
+    PowerUpType.bomb =>
+      'Turns the falling piece into a bomb that blasts the 3x3 area where it lands.',
+  };
+
   Widget _icon() => switch (type) {
     PowerUpType.sweep => const Icon(Icons.waves, color: Color(0xFF39D0F2)),
     PowerUpType.slow => const Icon(

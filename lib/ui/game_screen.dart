@@ -19,6 +19,7 @@ import '../game/rules/well.dart';
 import '../game/themes/block_theme.dart';
 import 'game_over_panel.dart';
 import 'hud_widgets.dart';
+import 'routes.dart';
 import 'share_card.dart';
 import 'test_ids.dart';
 import 'theme_fade.dart';
@@ -376,6 +377,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             ),
           ),
           Text('Best $best'),
+          if (!s.profile.data.adsRemoved)
+            RemoveAdsPill(
+              key: TestIds.gameOverRemoveAds,
+              onPressed: () => Navigator.of(ctx).pushNamed(AppRoutes.shop),
+            ),
           if (game.score >= best && game.score > 0)
             const Text('New best!', style: TextStyle(color: kGold)),
         ],
@@ -505,6 +511,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
+              ),
+              // What the power does, readable before spending anything.
+              Text(
+                PowerUpButton.description(t),
+                key: TestIds.gameRefillDescription,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70, fontSize: 15),
               ),
               FilledButton.icon(
                 key: TestIds.gameRefillCoins,

@@ -110,7 +110,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     if (saved != null) {
       restored = BlockfallGame.restore(saved, stock: _savedStock());
       themeStart = (saved['themeStart'] as num?)?.toInt() ?? themeStart;
-      if (restored == null) _s!.profile.saveGame(null);
+      if (restored == null) {
+        // Not during build: clearing notifies the profile's listeners.
+        final profile = _s!.profile;
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => profile.saveGame(null),
+        );
+      }
     }
     final rules = widget.game ?? restored ?? _newRules();
     _flame = BlockfallFlameGame(
@@ -643,7 +649,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               IconButton.filledTonal(
                 key: left ? TestIds.gamePause : TestIds.gameBack,
                 icon: Icon(left ? Icons.pause : Icons.chevron_left),
-                onPressed: left ? _pause : _leave,
+                onPressed: _pause,
               ),
               // Score shares the header row, so the well gets the freed height.
               Expanded(
@@ -663,7 +669,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               IconButton.filledTonal(
                 key: left ? TestIds.gameBack : TestIds.gamePause,
                 icon: Icon(left ? Icons.chevron_left : Icons.pause),
-                onPressed: left ? _leave : _pause,
+                onPressed: _pause,
               ),
             ],
           ),
@@ -905,8 +911,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         height: 52,
         child: OutlinedButton.icon(
           key: TestIds.gamePauseQuit,
-          icon: const Icon(Icons.home),
-          label: const Text('Home'),
+          icon: const Icon(Icons.exit_to_app),
+          label: const Text('Exit'),
           onPressed: _leave,
         ),
       ),

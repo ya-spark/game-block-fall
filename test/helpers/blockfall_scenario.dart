@@ -177,7 +177,11 @@ abstract final class BlockfallScenario {
     await setControls(tester, bot, buttons: false);
     await _play(tester, bot);
     await gesturePhase(tester, bot);
-    await bot.tap(TestIds.gameBack);
+    await bot.tap(
+      TestIds.gameBack,
+    ); // Back pauses; Exit saves the game and leaves
+    await bot.pumpFor(const Duration(milliseconds: 300));
+    await bot.tap(TestIds.gamePauseQuit);
     await bot.pumpFor(const Duration(milliseconds: 800));
     expect(find.byKey(TestIds.homePlay), findsOneWidget);
     // Leaving keeps the unfinished game (autosave); drop it so the next Play is a new game.

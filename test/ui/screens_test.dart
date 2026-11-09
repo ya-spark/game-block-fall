@@ -161,6 +161,10 @@ void main() {
     expect(find.byKey(TestIds.gameBanner), findsNothing);
     await tester.tap(find.byKey(TestIds.gameBack));
     await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(
+      find.byKey(TestIds.gamePauseQuit),
+    ); // Back asks Resume or Exit
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.byKey(TestIds.homePlay), findsOneWidget);
   });

@@ -64,7 +64,8 @@ void main() {
       await tester.pumpWidget(GameApp(services: s));
       await tester.pump(const Duration(milliseconds: 300));
       await BlockfallScenario.fullAppRun(tester);
-      expect(s.profile.data.stats.gamesPlayed, 2);
+      // The first game was left unfinished (autosave keeps it), so only the second counts.
+      expect(s.profile.data.stats.gamesPlayed, 1);
       expect(s.profile.data.controls, ControlScheme.buttons);
       expect(tester.takeException(), isNull);
       handle.dispose();

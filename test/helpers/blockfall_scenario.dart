@@ -1,3 +1,4 @@
+import 'package:blockfall/core/services.dart';
 import 'package:blockfall/game/rules/blockfall_game.dart';
 import 'package:blockfall/ui/test_ids.dart';
 import 'package:flutter/material.dart';
@@ -179,6 +180,9 @@ abstract final class BlockfallScenario {
     await bot.tap(TestIds.gameBack);
     await bot.pumpFor(const Duration(milliseconds: 800));
     expect(find.byKey(TestIds.homePlay), findsOneWidget);
+    // Leaving keeps the unfinished game (autosave); drop it so the next Play is a new game.
+    final home = tester.element(find.byKey(TestIds.homePlay));
+    await ServicesScope.of(home).profile.saveGame(null);
 
     await setControls(tester, bot, buttons: true);
     await _play(tester, bot);

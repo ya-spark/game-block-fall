@@ -471,7 +471,7 @@ void main() {
     addTearDown(tester.view.reset);
     final s = await buildFakeServices();
     expect(s.profile.data.masterVolume, 1.0);
-    expect(s.profile.data.ambience, 'before_sunrise');
+    expect(s.profile.data.ambience, 'morning_birds');
     expect(s.profile.data.voiceOn, isTrue);
     expect(s.profile.data.leftHanded, isFalse);
     await tester.pumpWidget(

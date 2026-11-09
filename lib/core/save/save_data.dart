@@ -35,7 +35,7 @@ class SaveData {
     this.ghostOn = true,
     this.themeIndex = 0,
     this.masterVolume = 1.0,
-    this.ambience = 'before_sunrise',
+    this.ambience = 'morning_birds',
     this.voiceOn = true,
     this.leftHanded = false,
     this.tipsOff = false,
@@ -80,7 +80,7 @@ class SaveData {
   /// Position in the theme rotation (`ThemeRotation`); a new game continues from it.
   final int themeIndex;
 
-  /// Master volume 0..1, ambience track id ('off', 'before_sunrise', ...), voice switch.
+  /// Master volume 0..1, ambience track id ('off', 'morning_birds', ...), voice switch.
   final double masterVolume;
   final String ambience;
   final bool voiceOn;
@@ -210,7 +210,7 @@ class SaveData {
       0.0,
       1.0,
     ),
-    ambience: j['ambience'] as String? ?? 'before_sunrise',
+    ambience: _migrateAmbience(j['ambience'] as String?),
     voiceOn: j['voiceOn'] as bool? ?? true,
     leftHanded: j['leftHanded'] as bool? ?? false,
     tipsOff: j['tipsOff'] as bool? ?? false,
@@ -285,3 +285,7 @@ abstract final class SaveMigrator {
     ],
   };
 }
+
+/// The retired "Before sunrise" track falls back to the default (owner, 2026-11-09).
+String _migrateAmbience(String? id) =>
+    id == null || id == 'before_sunrise' ? 'morning_birds' : id;

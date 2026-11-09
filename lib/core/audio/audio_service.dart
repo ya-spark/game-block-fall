@@ -9,7 +9,6 @@ import 'voice_arbiter.dart';
 /// Ambience tracks: id, label, file in assets/ambience/ ('off' has no file).
 const List<(String, String, String?)> ambienceTracks = [
   ('off', 'Off', null),
-  ('before_sunrise', 'Before sunrise', 'before_sunrise.mp3'),
   ('morning_birds', 'Morning birds', 'morning_birds.mp3'),
   ('heartbeat', 'Heartbeat', 'heartbeat.mp3'),
 ];
@@ -30,7 +29,7 @@ class AudioService {
   bool enabled = true;
   bool voiceOn = true;
   double masterVolume = 1.0;
-  String ambienceId = 'before_sunrise';
+  String ambienceId = 'morning_birds';
 
   bool _ambienceWanted = false;
   bool _ambiencePlaying = false;
@@ -163,5 +162,46 @@ class _VoicePlayerOutput implements VoiceOutput {
     final pos = await p.getCurrentPosition();
     if (d == null || pos == null) return null;
     return d - pos;
+  }
+}
+
+/// One-shot player for the Settings "preview" button. Plays a track from the start, looping
+/// until stopped; separate from the in-game [AudioService] so Settings needs no game audio.
+class AmbiencePreview {
+  AudioPlayer? _player;
+  String? playing;
+
+  Future<void> toggle(String id, double volume) async {
+    if (playing == id) return stop();
+    String? file;
+    for (final t in ambienceTracks) {
+      if (t.$1 == id) file = t.$3;
+    }
+    if (file == null) return stop();
+    try {
+      final p = _player ??= AudioPlayer();
+      await p.setReleaseMode(ReleaseMode.loop);
+      await p.setVolume(AudioService.ambienceVolume * volume * 2);
+      await p.play(AssetSource('ambience/$file'));
+      playing = id;
+    } catch (e) {
+      debugPrint('audio: preview $id failed: $e');
+      playing = null;
+    }
+  }
+
+  Future<void> stop() async {
+    playing = null;
+    try {
+      await _player?.stop();
+    } catch (_) {}
+  }
+
+  Future<void> dispose() async {
+    playing = null;
+    try {
+      await _player?.dispose();
+    } catch (_) {}
+    _player = null;
   }
 }

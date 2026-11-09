@@ -53,20 +53,7 @@ class SettingsScreen extends StatelessWidget {
                         onChanged: p.setMasterVolume,
                       ),
                     ),
-                    ListTile(
-                      title: const Text('Background sound'),
-                      trailing: DropdownButton<String>(
-                        key: TestIds.settingsAmbience,
-                        value: p.data.ambience,
-                        items: [
-                          for (final t in ambienceTracks)
-                            DropdownMenuItem(value: t.$1, child: Text(t.$2)),
-                        ],
-                        onChanged: (v) {
-                          if (v != null) p.setAmbience(v);
-                        },
-                      ),
-                    ),
+                    _AmbienceRow(profile: p),
                     SwitchListTile(
                       key: TestIds.settingsVoice,
                       title: const Text('Voice'),
@@ -242,6 +229,83 @@ class _BlockfallSettings extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Background sound picker with a play button to hear a track before choosing it.
+class _AmbienceRow extends StatefulWidget {
+  const _AmbienceRow({required this.profile});
+  final ProfileStore profile;
+
+  @override
+  State<_AmbienceRow> createState() => _AmbienceRowState();
+}
+
+class _AmbienceRowState extends State<_AmbienceRow> {
+  final AmbiencePreview _preview = AmbiencePreview();
+
+  @override
+  void dispose() {
+    _preview.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final data = widget.profile.data;
+    // Ink text on the white panel: the dark app theme would otherwise paint it light.
+    const style = TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w800,
+      color: KidColors.ink,
+    );
+    return ListTile(
+      title: const Text('Background sound'),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          DropdownButton<String>(
+            key: TestIds.settingsAmbience,
+            value: data.ambience,
+            style: style,
+            dropdownColor: Colors.white,
+            iconEnabledColor: KidColors.ink,
+            items: [
+              for (final t in ambienceTracks)
+                DropdownMenuItem(
+                  value: t.$1,
+                  child: Text(t.$2, style: style),
+                ),
+            ],
+            onChanged: (v) {
+              if (v == null) return;
+              widget.profile.setAmbience(v);
+              if (_preview.playing != null) {
+                _preview.stop().then((_) {
+                  if (mounted) setState(() {});
+                });
+              }
+            },
+          ),
+          IconButton(
+            key: TestIds.settingsAmbiencePreview,
+            tooltip: 'Preview',
+            color: KidColors.ink,
+            icon: Icon(
+              _preview.playing == data.ambience
+                  ? Icons.stop_circle_outlined
+                  : Icons.play_circle_outline,
+            ),
+            onPressed: data.ambience == 'off'
+                ? null
+                : () async {
+                    await _preview.toggle(data.ambience, data.masterVolume);
+                    if (mounted) setState(() {});
+                  },
+          ),
+        ],
+      ),
     );
   }
 }

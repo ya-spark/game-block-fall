@@ -40,11 +40,11 @@ void main() {
     () async {
       final s = await buildFakeServices();
       const p = AdPacingConfig();
-      expect(s.config.adPacing.interstitialMinIntervalSeconds, 90);
+      expect(s.config.adPacing.interstitialMinIntervalSeconds, 180);
       expect(s.config.adPacing.interstitialEveryNGameOvers, 2);
       expect(s.config.adPacing.maxInterstitialsPerSession, 6);
       expect(s.config.adPacing.noInterstitialFirstSeconds, 60);
-      expect(p.interstitialMinIntervalSeconds, 90);
+      expect(p.interstitialMinIntervalSeconds, 180);
       expect(p.maxInterstitialsPerSession, 6);
     },
   );

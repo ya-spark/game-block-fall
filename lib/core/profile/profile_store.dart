@@ -1,49 +1,16 @@
 import 'package:flutter/foundation.dart';
 
-import '../clock.dart';
+import 'package:game_blockfall/blockfall.dart';
+
 import '../config/app_config.dart';
 import '../config/products.dart';
 import '../purchase/purchase_service.dart';
-import '../retention/achievements.dart';
-import '../retention/daily_challenges.dart';
-import '../retention/daily_reward.dart';
-import '../retention/streaks.dart';
-import '../save/save_data.dart';
+
 import '../save/save_service.dart';
-
-/// Result of one finished game, fed into stats / challenges / achievements.
-class GameSummary {
-  const GameSummary({
-    required this.score,
-    required this.linesCleared,
-    required this.piecesPlaced,
-    required this.maxCombo,
-    this.quads = 0,
-    this.prismRows = 0,
-    this.holdsUsed = 0,
-    this.perfectClears = 0,
-    this.level = 1,
-  });
-  final int score;
-  final int linesCleared;
-  final int piecesPlaced;
-  final int maxCombo;
-
-  /// Quads (4 rows at once) cleared this game.
-  final int quads;
-
-  /// Rows holding a prism that were cleared this game.
-  final int prismRows;
-  final int holdsUsed;
-  final int perfectClears;
-
-  /// Level reached when the game ended.
-  final int level;
-}
 
 /// Holds the player's [SaveData], applies the retention engines and persists every change.
 /// UI listens to it; game rules never touch it.
-class ProfileStore extends ChangeNotifier {
+class ProfileStore extends ChangeNotifier implements BlockfallProfileStore {
   /// `--dart-define=BLOCKFALL_CONTROLS=buttons` makes Buttons the default (bot / tests).
   static const ControlScheme defaultControls =
       String.fromEnvironment('BLOCKFALL_CONTROLS') == 'buttons'
@@ -59,6 +26,7 @@ class ProfileStore extends ChangeNotifier {
   static const ClockGuard _guard = ClockGuard();
 
   SaveData _data = const SaveData();
+  @override
   SaveData get data => _data;
 
   /// Device clock is behind the latest time we saw (the player moved it back).
@@ -107,6 +75,7 @@ class ProfileStore extends ChangeNotifier {
   }
 
   /// Autosave of the running game (null clears it). Skips the write when nothing changed.
+  @override
   Future<void> saveGame(Map<String, Object?>? game) {
     if (game == null && _data.game == null) return Future.value();
     return _commit(
@@ -158,6 +127,7 @@ class ProfileStore extends ChangeNotifier {
 
   // ---- streak -------------------------------------------------------------
 
+  @override
   int get displayStreak => StreakEngine.displayStreak(_data.streak, today);
 
   // ---- challenges ---------------------------------------------------------
@@ -177,6 +147,7 @@ class ProfileStore extends ChangeNotifier {
   // ---- gameplay -----------------------------------------------------------
 
   /// Records a finished game. Returns achievements unlocked by it.
+  @override
   Future<List<AchievementDef>> recordGameFinished(GameSummary g) async {
     var d = _data;
     final stats = d.stats.copyWith(
@@ -243,9 +214,11 @@ class ProfileStore extends ChangeNotifier {
 
   // ---- coins / settings ---------------------------------------------------
 
+  @override
   Future<void> addCoins(int n) =>
       _commit(_data.copyWith(coins: _data.coins + n));
 
+  @override
   Future<bool> spendCoins(int n) async {
     if (_data.coins < n) return false;
     await _commit(_data.copyWith(coins: _data.coins - n));
@@ -259,7 +232,9 @@ class ProfileStore extends ChangeNotifier {
   // ---- tips ---------------------------------------------------------------
 
   /// Tips on/off: the "Don't show tips again" checkbox and the settings switch share this.
+  @override
   bool get tipsEnabled => !_data.tipsOff;
+  @override
   Future<void> setTipsEnabled(bool v) => _commit(_data.copyWith(tipsOff: !v));
 
   /// The home tip of the day has not been closed today.
@@ -269,9 +244,12 @@ class ProfileStore extends ChangeNotifier {
   // ---- Blockfall settings and power-up stock ------------------------------
 
   /// The scheme in use: the saved choice, else [defaultControls] (a build-time default).
+  @override
   ControlScheme get controlScheme => _data.controls ?? defaultControls;
+  @override
   Future<void> setControls(ControlScheme v) =>
       _commit(_data.copyWith(controls: v));
+  @override
   Future<void> setThemeIndex(int v) {
     if (v == _data.themeIndex) return Future.value();
     return _commit(_data.copyWith(themeIndex: v));
@@ -287,6 +265,7 @@ class ProfileStore extends ChangeNotifier {
   int powerUpCount(String id) => _data.powerUpCount(id);
 
   /// Replaces the stock (the game writes its remaining stock back during play).
+  @override
   Future<void> setPowerUps(Map<String, int> stock) async {
     final next = _withPowerUps({for (final id in kPowerUpIds) id: 0}, stock);
     if (mapEquals(next, _data.powerUps)) return;

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:blockfall/core/clock.dart';
-import 'package:blockfall/core/save/save_data.dart';
+import 'package:game_blockfall/blockfall.dart';
+
 import 'package:blockfall/core/save/save_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';

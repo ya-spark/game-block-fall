@@ -8,11 +8,11 @@
 // very same script (test/helpers/blockfall_scenario.dart) runs as a normal VM widget test in
 // test/ui/e2e_bot_test.dart, which CI does run on every push.
 import 'package:blockfall/main.dart' as app;
-import 'package:blockfall/ui/test_ids.dart';
+import 'package:game_blockfall/blockfall.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
-import '../test/helpers/blockfall_scenario.dart';
+import 'package:game_blockfall/testing.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

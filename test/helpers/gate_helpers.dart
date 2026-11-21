@@ -1,4 +1,4 @@
-import 'package:blockfall/ui/test_ids.dart';
+import 'package:game_blockfall/blockfall.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

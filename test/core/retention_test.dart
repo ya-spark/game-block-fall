@@ -1,8 +1,5 @@
-import 'package:blockfall/core/clock.dart';
-import 'package:blockfall/core/retention/achievements.dart';
-import 'package:blockfall/core/retention/daily_challenges.dart';
-import 'package:blockfall/core/retention/daily_reward.dart';
-import 'package:blockfall/core/retention/streaks.dart';
+import 'package:game_blockfall/blockfall.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

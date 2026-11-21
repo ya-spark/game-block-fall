@@ -3,14 +3,16 @@ import 'dart:math';
 import 'package:blockfall/core/ads/ad_service.dart';
 import 'package:blockfall/core/config/app_config.dart';
 import 'package:blockfall/core/purchase/purchase_service.dart';
-import 'package:blockfall/game/rules/blockfall_game.dart';
-import 'package:blockfall/game/rules/powerups.dart';
-import 'package:blockfall/ui/test_ids.dart';
+import 'package:game_blockfall/blockfall.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 
-import '../helpers/blockfall_bot.dart';
-import '../helpers/fake_services.dart';
 import '../helpers/game_harness.dart';
+
+import 'package:game_blockfall/testing.dart';
+
+import '../helpers/fake_services.dart';
+
 import '../helpers/policy_ad_service.dart';
 
 /// Drops pieces straight down until the well tops out (no line can complete that way).

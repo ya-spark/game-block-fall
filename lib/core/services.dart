@@ -23,7 +23,8 @@ import 'save/play_games_save.dart';
 import 'save/save_service.dart';
 import 'share/share_service.dart';
 import 'share/system_share_service.dart';
-import 'tips/tip_service.dart';
+
+import 'package:game_blockfall/blockfall.dart';
 
 /// Composition root: every service the game and UI use, behind interfaces.
 /// This is the ONLY place that picks vendor implementations.

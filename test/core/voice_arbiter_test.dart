@@ -1,4 +1,4 @@
-import 'package:blockfall/core/audio/voice_arbiter.dart';
+import 'package:game_blockfall/blockfall.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class FakeVoice implements VoiceOutput {

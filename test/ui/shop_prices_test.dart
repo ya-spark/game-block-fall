@@ -1,14 +1,15 @@
 import 'package:blockfall/app.dart';
-import 'package:blockfall/core/save/save_data.dart';
+import 'package:game_blockfall/blockfall.dart';
 import 'package:blockfall/core/services.dart';
-import 'package:blockfall/game/rules/powerups.dart';
-import 'package:blockfall/ui/test_ids.dart';
-import 'package:blockfall/ui/widgets.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../helpers/fake_services.dart';
 import '../helpers/game_harness.dart';
+
+import '../helpers/fake_services.dart';
+
+import 'package:game_blockfall/testing.dart';
 
 Future<void> pumpApp(WidgetTester tester, Services s) async {
   tester.view.physicalSize = const Size(400, 800);

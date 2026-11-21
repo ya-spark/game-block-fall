@@ -1,20 +1,16 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:blockfall/core/save/save_data.dart';
-import 'package:blockfall/game/rules/bag.dart';
-import 'package:blockfall/game/rules/blockfall_game.dart';
-import 'package:blockfall/game/rules/piece_type.dart';
-import 'package:blockfall/game/rules/theme_rotation.dart';
-import 'package:blockfall/game/rules/well.dart';
-import 'package:blockfall/game/flame/blockfall_flame_game.dart';
-import 'package:blockfall/game/themes/block_theme.dart';
-import 'package:blockfall/ui/test_ids.dart';
+import 'package:game_blockfall/blockfall.dart';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../helpers/fake_services.dart';
 import '../helpers/game_harness.dart';
+
+import '../helpers/fake_services.dart';
+
+import 'package:game_blockfall/testing.dart';
 
 void main() {
   group('theme rotation', () {

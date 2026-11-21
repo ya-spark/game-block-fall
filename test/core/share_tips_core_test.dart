@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:blockfall/core/config/app_config.dart';
 import 'package:blockfall/core/share/share_service.dart';
-import 'package:blockfall/core/tips/tip_service.dart';
-import 'package:blockfall/game/tips.dart';
+import 'package:game_blockfall/blockfall.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 
 AppConfig configWith(String mode, String url) {

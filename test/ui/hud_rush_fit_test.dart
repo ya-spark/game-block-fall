@@ -1,9 +1,11 @@
-import 'package:blockfall/game/rules/piece_type.dart';
-import 'package:blockfall/ui/test_ids.dart';
+import 'package:game_blockfall/blockfall.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/game_harness.dart';
+
+import 'package:game_blockfall/testing.dart';
 
 void main() {
   testWidgets('HUD: streak, combo and Gold Rush chip fit at 360 wide', (

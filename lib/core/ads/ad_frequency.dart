@@ -1,4 +1,5 @@
-import '../clock.dart';
+import 'package:game_blockfall/blockfall.dart';
+
 import '../config/app_config.dart';
 
 /// Pure policy deciding whether an interstitial may be shown. No SDK imports.

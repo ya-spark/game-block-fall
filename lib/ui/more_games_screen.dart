@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../core/config/app_config.dart';
 import '../core/services.dart';
 import 'parent_gate_dialog.dart';
-import 'test_ids.dart';
-import 'widgets.dart';
+
+import 'package:game_blockfall/blockfall.dart';
 
 /// "More games": the studio's other games, from the bundled `more_games:` config.
 /// No rewards of any kind for opening or installing another game.

@@ -1,7 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../profile/profile_store.dart';
-import 'save_data.dart';
+
+import 'package:game_blockfall/blockfall.dart';
 
 /// Chunk 2 of Blockfall kept the power-up stock, the controls scheme and the ghost toggle
 /// in plain SharedPreferences keys. They now live in [SaveData]; this copies any such

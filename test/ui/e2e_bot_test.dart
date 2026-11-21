@@ -1,15 +1,15 @@
 import 'package:blockfall/app.dart';
 import 'package:blockfall/core/ads/ad_service.dart';
-import 'package:blockfall/core/save/save_data.dart';
-import 'package:blockfall/game/rules/blockfall_game.dart';
-import 'package:blockfall/ui/test_ids.dart';
+import 'package:game_blockfall/blockfall.dart';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../helpers/blockfall_bot.dart';
-import '../helpers/blockfall_scenario.dart';
-import '../helpers/fake_services.dart';
 import '../helpers/game_harness.dart';
+
+import 'package:game_blockfall/testing.dart';
+
+import '../helpers/fake_services.dart';
 
 /// Plays one seeded game end to end through the real game screen, like the emulator
 /// integration test does, and returns (final score, pieces dropped, lines).

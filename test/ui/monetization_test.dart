@@ -5,14 +5,17 @@ import 'package:blockfall/core/purchase/parent_gate.dart';
 import 'package:blockfall/core/purchase/purchase_service.dart';
 import 'package:blockfall/app.dart';
 import 'package:blockfall/core/services.dart';
-import 'package:blockfall/game/rules/blockfall_game.dart';
-import 'package:blockfall/game/rules/powerups.dart';
-import 'package:blockfall/ui/test_ids.dart';
+import 'package:game_blockfall/blockfall.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../helpers/fake_services.dart';
 import '../helpers/game_harness.dart';
+
+import '../helpers/fake_services.dart';
+
+import 'package:game_blockfall/testing.dart';
+
 import '../helpers/gate_helpers.dart';
 
 BlockfallGame doomed() => mk(rows: List.filled(22, '111111111.'));

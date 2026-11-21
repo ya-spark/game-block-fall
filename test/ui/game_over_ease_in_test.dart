@@ -1,7 +1,5 @@
-import 'package:blockfall/game/themes/block_theme.dart';
-import 'package:blockfall/ui/game_over_panel.dart';
-import 'package:blockfall/ui/test_ids.dart';
-import 'package:blockfall/ui/theme_fade.dart';
+import 'package:game_blockfall/blockfall.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

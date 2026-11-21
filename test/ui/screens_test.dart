@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:blockfall/app.dart';
 import 'package:blockfall/core/services.dart';
-import 'package:blockfall/ui/game_screen.dart';
-import 'package:blockfall/ui/home_hero.dart';
-import 'package:blockfall/ui/test_ids.dart';
-import 'package:blockfall/ui/theme_fade.dart';
+import 'package:game_blockfall/blockfall.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/fake_services.dart';

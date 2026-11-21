@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import '../clock.dart';
+import 'package:game_blockfall/blockfall.dart';
 
 /// One multiplication question, e.g. `7 x 8`.
 class GateQuestion {

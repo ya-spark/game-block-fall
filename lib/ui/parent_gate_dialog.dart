@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 
 import '../core/purchase/parent_gate.dart';
 import '../core/services.dart';
-import 'test_ids.dart';
+
+import 'package:game_blockfall/blockfall.dart';
 
 /// Asks a grown-up to answer a multiplication before a real-money purchase.
 /// Returns true only after a correct answer. While purchases are locked it

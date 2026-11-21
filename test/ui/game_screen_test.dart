@@ -1,18 +1,19 @@
 import 'package:blockfall/core/ads/ad_service.dart';
-import 'package:blockfall/core/save/save_data.dart';
+import 'package:game_blockfall/blockfall.dart';
 import 'package:blockfall/core/services.dart';
-import 'package:blockfall/game/rules/blockfall_game.dart';
-import 'package:blockfall/game/rules/piece_type.dart';
-import 'package:blockfall/game/rules/powerups.dart';
-import 'package:blockfall/ui/game_screen.dart';
+
 import 'package:blockfall/ui/settings_screen.dart';
-import 'package:blockfall/ui/test_ids.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../helpers/blockfall_bot.dart';
-import '../helpers/fake_services.dart';
 import '../helpers/game_harness.dart';
+
+import 'package:blockfall/core/blockfall_host.dart';
+
+import 'package:game_blockfall/testing.dart';
+
+import '../helpers/fake_services.dart';
 
 void main() {
   testWidgets('HUD shows all elements and no ad widget', (tester) async {
@@ -453,7 +454,10 @@ void main() {
     await tester.pumpWidget(
       ServicesScope(
         services: s,
-        child: const MaterialApp(home: SettingsScreen()),
+        child: BlockfallServicesScope(
+          services: BlockfallServicesAdapter(s),
+          child: const MaterialApp(home: SettingsScreen()),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -477,7 +481,10 @@ void main() {
     await tester.pumpWidget(
       ServicesScope(
         services: s,
-        child: const MaterialApp(home: SettingsScreen()),
+        child: BlockfallServicesScope(
+          services: BlockfallServicesAdapter(s),
+          child: const MaterialApp(home: SettingsScreen()),
+        ),
       ),
     );
     await tester.pumpAndSettle();

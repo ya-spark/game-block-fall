@@ -4,8 +4,8 @@ import '../core/config/products.dart';
 import '../core/purchase/purchase_service.dart';
 import '../core/services.dart';
 import 'parent_gate_dialog.dart';
-import 'test_ids.dart';
-import 'widgets.dart';
+
+import 'package:game_blockfall/blockfall.dart';
 
 class ShopScreen extends StatelessWidget {
   const ShopScreen({super.key});

@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../core/services.dart';
-import '../game/themes/block_theme.dart';
-import 'home_hero.dart';
+
+import 'package:game_blockfall/blockfall.dart';
+
 import 'more_games_screen.dart';
 import 'routes.dart';
-import 'test_ids.dart';
-import 'theme_fade.dart';
-import 'tip_card.dart';
-import 'widgets.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

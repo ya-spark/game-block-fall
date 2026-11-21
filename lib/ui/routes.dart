@@ -21,7 +21,7 @@ abstract final class AppRoutes {
 
   static Route<void> onGenerateRoute(RouteSettings settings) {
     final builder = switch (settings.name) {
-      play => (BuildContext _) => const GameScreen(),
+      play => (BuildContext _) => const GameScreen(offerVersus: true),
       dailyReward => (BuildContext _) => const DailyRewardScreen(),
       challenges => (BuildContext _) => const ChallengesScreen(),
       shop => (BuildContext _) => const ShopScreen(),
